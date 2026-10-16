@@ -376,7 +376,7 @@
     [self.namesTable removeConstraints:self.namesTable.constraints];
     
     self.name.translatesAutoresizingMaskIntoConstraints = NO;
-    self.name.textColor = [UIColor blackColor];
+    self.name.textColor = [UIColor labelColor];
     self.namesTable.translatesAutoresizingMaskIntoConstraints = NO;
     self.activityIndicator.translatesAutoresizingMaskIntoConstraints = NO;
     self.genderLabel.translatesAutoresizingMaskIntoConstraints = NO;

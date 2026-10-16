@@ -101,46 +101,62 @@ static DBUser *_currentUser = nil;
 }
 
 + (void)beginWithGoogleFromViewController:(UIViewController *)viewController block:(void (^)(DBUser *, NSError *))block {
-    [GIDSignIn.sharedInstance signInWithPresentingViewController:viewController completion:^(GIDSignInResult * _Nullable signInResult, NSError * _Nullable error) {
-        if (error) {
-            if (block) block(nil, error);
-            return;
+    @try {
+        if (!GIDSignIn.sharedInstance.configuration) {
+            NSString *clientID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GIDClientID"];
+            if (!clientID) {
+                clientID = @"486710219401-nraiolsfoqqivgktvq1nps726anor72d.apps.googleusercontent.com";
+            }
+            GIDSignIn.sharedInstance.configuration = [[GIDConfiguration alloc] initWithClientID:clientID];
         }
         
-        GIDGoogleUser *gUser = signInResult.user;
-        NSString *idToken = gUser.idToken.tokenString;
-        NSString *accessToken = gUser.accessToken.tokenString;
-        
-        FIRAuthCredential *credential = [FIRGoogleAuthProvider credentialWithIDToken:idToken accessToken:accessToken];
-        [[FIRAuth auth] signInWithCredential:credential completion:^(FIRAuthDataResult * _Nullable authResult, NSError * _Nullable authError) {
-            if (authError) {
-                if (block) block(nil, authError);
+        [GIDSignIn.sharedInstance signInWithPresentingViewController:viewController completion:^(GIDSignInResult * _Nullable signInResult, NSError * _Nullable error) {
+            if (error) {
+                if (block) block(nil, error);
                 return;
             }
-            FIRUser *fbUser = authResult.user;
-            DBUser *user = [[DBUser alloc] init];
-            user.objectId = fbUser.uid;
-            user.email = fbUser.email;
-            NSString *uname = fbUser.displayName.length > 0 ? fbUser.displayName : [fbUser.email componentsSeparatedByString:@"@"].firstObject;
-            user.username = uname;
-            _currentUser = user;
             
-            [user fetchInBackgroundWithBlock:^(DBObject *fetchedUser, NSError *fetchError) {
-                if (!user[@"username"]) {
-                    [user setObject:uname forKey:@"username"];
-                    [user setObject:fbUser.email forKey:@"email"];
-                    [user setObject:@25 forKey:@"limit"];
-                    [user setObject:@"A" forKey:@"letter"];
-                    [user setObject:@"Adam" forKey:@"name"];
-                    [user setObject:@"M" forKey:@"gender"];
-                    [user setObject:@"Account" forKey:@"lastPage"];
-                    [user setObject:@"popular" forKey:@"sort"];
-                    [user saveInBackground];
+            GIDGoogleUser *gUser = signInResult.user;
+            NSString *idToken = gUser.idToken.tokenString;
+            NSString *accessToken = gUser.accessToken.tokenString;
+            
+            FIRAuthCredential *credential = [FIRGoogleAuthProvider credentialWithIDToken:idToken accessToken:accessToken];
+            [[FIRAuth auth] signInWithCredential:credential completion:^(FIRAuthDataResult * _Nullable authResult, NSError * _Nullable authError) {
+                if (authError) {
+                    if (block) block(nil, authError);
+                    return;
                 }
-                if (block) block(user, nil);
+                FIRUser *fbUser = authResult.user;
+                DBUser *user = [[DBUser alloc] init];
+                user.objectId = fbUser.uid;
+                user.email = fbUser.email;
+                NSString *uname = fbUser.displayName.length > 0 ? fbUser.displayName : [fbUser.email componentsSeparatedByString:@"@"].firstObject;
+                user.username = uname;
+                _currentUser = user;
+                
+                [user fetchInBackgroundWithBlock:^(DBObject *fetchedUser, NSError *fetchError) {
+                    if (!user[@"username"]) {
+                        [user setObject:uname forKey:@"username"];
+                        [user setObject:fbUser.email forKey:@"email"];
+                        [user setObject:@25 forKey:@"limit"];
+                        [user setObject:@"A" forKey:@"letter"];
+                        [user setObject:@"Adam" forKey:@"name"];
+                        [user setObject:@"M" forKey:@"gender"];
+                        [user setObject:@"Account" forKey:@"lastPage"];
+                        [user setObject:@"popular" forKey:@"sort"];
+                        [user saveInBackground];
+                    }
+                    if (block) block(user, nil);
+                }];
             }];
         }];
-    }];
+    } @catch (NSException *exception) {
+        NSLog(@"Exception in beginWithGoogleFromViewController: %@", exception);
+        if (block) {
+            NSError *err = [NSError errorWithDomain:@"BabyNamesGoogle" code:-1 userInfo:@{NSLocalizedDescriptionKey: exception.reason ?: @"Google Sign-In failed"}];
+            block(nil, err);
+        }
+    }
 }
 
 + (void)logOut {

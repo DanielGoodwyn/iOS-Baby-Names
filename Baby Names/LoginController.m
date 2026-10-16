@@ -213,16 +213,22 @@
     self.loginLabel.text = @"Signing in with Google...";
     self.loginLabel.textColor = [UIColor labelColor];
     
-    [DBUser beginWithGoogleFromViewController:self block:^(DBUser *user, NSError *error) {
-        if (user) {
-            [self getUser];
-            [self performSegueWithIdentifier:@"home" sender:nil];
-            [self lastPage];
-        } else {
-            self.loginLabel.text = error.localizedDescription ?: @"Google Sign-In failed";
-            self.loginLabel.textColor = [UIColor systemRedColor];
-        }
-    }];
+    @try {
+        [DBUser beginWithGoogleFromViewController:self block:^(DBUser *user, NSError *error) {
+            if (user) {
+                [self getUser];
+                [self performSegueWithIdentifier:@"home" sender:nil];
+                [self lastPage];
+            } else {
+                self.loginLabel.text = error.localizedDescription ?: @"Google Sign-In failed";
+                self.loginLabel.textColor = [UIColor systemRedColor];
+            }
+        }];
+    } @catch (NSException *exception) {
+        NSLog(@"Exception in beginWithGoogle: %@", exception);
+        self.loginLabel.text = exception.reason ?: @"Google Sign-In error";
+        self.loginLabel.textColor = [UIColor systemRedColor];
+    }
 }
 
 - (void)logoutAction:(id)sender {

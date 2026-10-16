@@ -1,2 +1,5 @@
 build/
 *.xcarchive
+build_log.txt
+*.dSYM
+.DS_Store

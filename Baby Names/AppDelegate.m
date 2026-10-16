@@ -14,6 +14,12 @@
     [Database enableLocalDatastore];
     [Database setApplicationId:@"bm6jT0Rj1lUCwutfFk1WUgXm4wLRpN1Jz4LKMLqw" clientKey:@"Y8IFJzyA64AhAUOh7TvOn7FXd3U6xcIhwY4pQWuz"];
 
+    NSString *clientID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GIDClientID"];
+    if (!clientID) {
+        clientID = @"486710219401-nraiolsfoqqivgktvq1nps726anor72d.apps.googleusercontent.com";
+    }
+    GIDSignIn.sharedInstance.configuration = [[GIDConfiguration alloc] initWithClientID:clientID];
+
     return YES;
 }
 
