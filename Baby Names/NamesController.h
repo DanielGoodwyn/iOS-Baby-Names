@@ -1,5 +1,5 @@
 
-#import <Parse/Parse.h>
+#import "Database.h"
 #import <UIKit/UIKit.h>
 
 @interface NamesController : UIViewController

@@ -12,9 +12,10 @@
 #pragma mark - login
 
 - (void)login {
-    PFUser *currentUser = [PFUser currentUser];
-    if (currentUser  == nil) {
+    DBUser *currentUser = [DBUser currentUser];
+    if (currentUser == nil) {
         LoginController *loginController = [self.storyboard instantiateViewControllerWithIdentifier:@"LoginController"];
+        loginController.modalPresentationStyle = UIModalPresentationFullScreen;
         [self.view.window makeKeyAndVisible];
         [self presentViewController:loginController animated:NO completion:nil];
     }
@@ -44,13 +45,122 @@
     right.edges = UIRectEdgeRight;
     [self.view addGestureRecognizer:left];
     [self.view addGestureRecognizer:right];
+    
+    [self layoutProgrammatically];
+}
+
+- (void)layoutProgrammatically {
+    UIButton *boyBtn = nil, *bothBtn = nil, *girlBtn = nil;
+    UIButton *topBtn = nil, *playBtn = nil, *profileBtn = nil, *notesBtn = nil;
+    
+    for (UIView *v in self.view.subviews) {
+        if ([v isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)v;
+            btn.translatesAutoresizingMaskIntoConstraints = NO; // Enable auto layout
+            NSString *title = [btn titleForState:UIControlStateNormal];
+            if ([title isEqualToString:@"👦"]) boyBtn = btn;
+            else if ([title isEqualToString:@"👶"]) bothBtn = btn;
+            else if ([title isEqualToString:@"👧"]) girlBtn = btn;
+            else if ([title isEqualToString:@"TOP"]) topBtn = btn;
+            else {
+                // Determine by frame position to identify remaining buttons
+                if (btn.frame.origin.y < 100) {
+                    if (btn.frame.origin.x < 150) profileBtn = btn; // Top left
+                    else notesBtn = btn; // Top right
+                } else if (btn.frame.origin.y > 300) {
+                    playBtn = btn; // Bottom right play button
+                }
+            }
+        }
+    }
+    
+    // Top Bar (Profile, Notes)
+    if (profileBtn && notesBtn) {
+        [NSLayoutConstraint activateConstraints:@[
+            [profileBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [profileBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            
+            [notesBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [notesBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+        ]];
+    }
+    
+    // Center Emojis
+    if (boyBtn && bothBtn && girlBtn) {
+        UIStackView *emojiStack = [[UIStackView alloc] initWithArrangedSubviews:@[boyBtn, bothBtn, girlBtn]];
+        emojiStack.axis = UILayoutConstraintAxisHorizontal;
+        emojiStack.distribution = UIStackViewDistributionEqualSpacing;
+        emojiStack.spacing = 20;
+        emojiStack.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:emojiStack];
+        
+        [NSLayoutConstraint activateConstraints:@[
+            [emojiStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+            [emojiStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-40],
+        ]];
+    }
+    
+    // Bottom Bar (TOP, limit textfield, Play)
+    if (topBtn && playBtn && self.limitTextField) {
+        self.limitTextField.translatesAutoresizingMaskIntoConstraints = NO;
+        self.limitTextField.textColor = [UIColor labelColor];
+        
+        [NSLayoutConstraint activateConstraints:@[
+            [topBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
+            [topBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            
+            [self.limitTextField.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
+            [self.limitTextField.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+            
+            [playBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
+            [playBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+        ]];
+    }
+    
+    // Alphabet Picker
+    self.alphabetPicker.translatesAutoresizingMaskIntoConstraints = NO;
+    [NSLayoutConstraint activateConstraints:@[
+        [self.alphabetPicker.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.alphabetPicker.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-80],
+        [self.alphabetPicker.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.9]
+    ]];
+}
+
+- (UIColor *)boyBackgroundColor {
+    return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+        if (tc.userInterfaceStyle == UIUserInterfaceStyleDark) {
+            return [UIColor colorWithRed:0.12 green:0.21 blue:0.37 alpha:1.0];
+        } else {
+            return [UIColor colorWithRed:.8 green:.85 blue:1 alpha:1];
+        }
+    }];
+}
+
+- (UIColor *)girlBackgroundColor {
+    return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+        if (tc.userInterfaceStyle == UIUserInterfaceStyleDark) {
+            return [UIColor colorWithRed:0.37 green:0.12 blue:0.24 alpha:1.0];
+        } else {
+            return [UIColor colorWithRed:1 green:.8 blue:.85 alpha:1];
+        }
+    }];
+}
+
+- (UIColor *)allBackgroundColor {
+    return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+        if (tc.userInterfaceStyle == UIUserInterfaceStyleDark) {
+            return [UIColor colorWithRed:0.12 green:0.12 blue:0.12 alpha:1.0];
+        } else {
+            return [UIColor colorWithRed:1 green:1 blue:1 alpha:1];
+        }
+    }];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     
     if (!_detailItem) {
         self.genderString = @"👦";
-        [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
+        [self.view setBackgroundColor:[self boyBackgroundColor]];
         self.limitNumber = 25;
     } else {
         NSArray *parsed = [_detailItem componentsSeparatedByString:@","];
@@ -69,11 +179,11 @@
         
         self.letterString = parsed[1];
         if ([genderLetter isEqual:@"👦"]) {
-            [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
+            [self.view setBackgroundColor:[self boyBackgroundColor]];
         } if ([genderLetter isEqual:@"👧"]) {
-            [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
+            [self.view setBackgroundColor:[self girlBackgroundColor]];
         } if ([genderLetter isEqual:@"👶"]) {
-            [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
+            [self.view setBackgroundColor:[self allBackgroundColor]];
         }
         
         for (int i = 0; i<[self.alphabet count]; i++) {
@@ -87,7 +197,7 @@
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [self login];
     if ([self.genderString isEqual:@"👦"]) {
         self.genderString =@"M";
@@ -128,11 +238,11 @@
     self.limitTextField.text = [NSString stringWithFormat: @"%i", self.limitNumber];
     
     if ([self.genderString isEqualToString:@"M"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
+        [self.view setBackgroundColor:[self boyBackgroundColor]];
     } else if ([self.genderString isEqualToString:@"F"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
+        [self.view setBackgroundColor:[self girlBackgroundColor]];
     } else {
-        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
+        [self.view setBackgroundColor:[self allBackgroundColor]];
     }
 
 }
@@ -147,13 +257,18 @@
     return self.alphabet.count;
 }
 
+- (NSAttributedString *)pickerView:(UIPickerView *)pickerView attributedTitleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    NSString *title = self.alphabet[row];
+    return [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName: [UIColor labelColor]}];
+}
+
 - (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
     return self.alphabet[row];
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     self.alphabetIndex = (int)row;
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:self.alphabet[self.alphabetIndex] forKey:@"letter"];
     [currentUser saveInBackground];
 }
@@ -203,7 +318,7 @@
     if (self.limitNumber < 1){
         self.limitNumber = 1;
     }
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject: [NSNumber numberWithInteger:self.limitNumber] forKey:@"limit"];
     [currentUser saveInBackground];
 }
@@ -231,7 +346,7 @@
 #pragma mark - segue
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    
+    [segue.destinationViewController setModalPresentationStyle:UIModalPresentationFullScreen];
     [self lastPage];
     
     NSString *genderLetter;
@@ -297,30 +412,30 @@
 
 - (IBAction)boy:(id)sender {
     self.genderString = @"👦";
-    [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
-    PFUser *currentUser = [PFUser currentUser];
+    [self.view setBackgroundColor:[self boyBackgroundColor]];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"M" forKey:@"gender"];
     [currentUser saveInBackground];
 }
 
 - (IBAction)girl:(id)sender {
     self.genderString = @"👧";
-    [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
-    PFUser *currentUser = [PFUser currentUser];
+    [self.view setBackgroundColor:[self girlBackgroundColor]];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"F" forKey:@"gender"];
     [currentUser saveInBackground];
 }
 
 - (IBAction)either:(id)sender {
     self.genderString = @"👶";
-    [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
-    PFUser *currentUser = [PFUser currentUser];
+    [self.view setBackgroundColor:[self allBackgroundColor]];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"All" forKey:@"gender"];
     [currentUser saveInBackground];
 }
 
 - (void)lastPage {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"Home" forKey:@"lastPage"];
     [currentUser saveInBackground];
 }
@@ -330,7 +445,7 @@
 - (void)setPopular {
     self.sortString = @"popular";
     [self.sortButton setTitle:@"🔝" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"popular" forKey:@"sort"];
     [currentUser saveInBackground];
 }
@@ -338,7 +453,7 @@
 - (void)setUncommon {
     self.sortString = @"uncommon";
     [self.sortButton setTitle:@"🔚" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"uncommon" forKey:@"sort"];
     [currentUser saveInBackground];
 }
@@ -346,7 +461,7 @@
 - (void)setNamesAtoZ {
     self.sortString = @"namesAtoZ";
     [self.sortButton setTitle:@"🔜" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"namesAtoZ" forKey:@"sort"];
     [currentUser saveInBackground];
 }
@@ -354,7 +469,7 @@
 - (void)setNamesZtoA {
     self.sortString = @"namesZtoA";
     [self.sortButton setTitle:@"🔙" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"namesZtoA" forKey:@"sort"];
     [currentUser saveInBackground];
 }
@@ -362,7 +477,7 @@
 - (void)setNewest {
     self.sortString = @"newest";
     [self.sortButton setTitle:@"🆕" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"newest" forKey:@"sort"];
     [currentUser saveInBackground];
 }
@@ -370,7 +485,7 @@
 - (void)setOldest {
     self.sortString = @"oldest";
     [self.sortButton setTitle:@"👴" forState:UIControlStateNormal];
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"oldest" forKey:@"sort"];
     [currentUser saveInBackground];
 }

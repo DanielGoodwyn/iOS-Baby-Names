@@ -1,19 +1,23 @@
-
 #import <UIKit/UIKit.h>
-#import <Parse/Parse.h>
+#import "Database.h"
 
 @interface LoginController : UIViewController
 
 @property (weak, nonatomic) IBOutlet UILabel *loginLabel;
-@property (weak, nonatomic) IBOutlet UITextField *usernameLabel;
 @property (weak, nonatomic) IBOutlet UITextField *emailLabel;
 @property (weak, nonatomic) IBOutlet UITextField *passwordLabel;
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
 @property (weak, nonatomic) IBOutlet UIButton *logoutButton;
 @property (weak, nonatomic) IBOutlet UIButton *signupButton;
 
-@property NSString *usernameString;
+@property (nonatomic, strong) UIButton *beginButton;
+@property (nonatomic, strong) UIButton *googleBeginButton;
+@property (nonatomic, strong) UIButton *forgotButton;
+
 @property NSString *emailString;
 @property NSString *passwordString;
+
+- (void)begin;
+- (void)beginWithGoogle;
 
 @end

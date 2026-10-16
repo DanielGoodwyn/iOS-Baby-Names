@@ -15,12 +15,15 @@
     self.nameChosen = @"NO";
 
     self.names = [[NSMutableArray alloc] init];
+    self.genders = [[NSMutableArray alloc] init];
     NSArray *parsed = [_detailItem componentsSeparatedByString:@","];
     self.genderString = parsed[0];
     self.letterString = parsed[1];
     self.limitNumber = [parsed[3] intValue];
     
-    PFUser *currentUser = [PFUser currentUser];
+    [self layoutProgrammatically];
+    
+    DBUser *currentUser = [DBUser currentUser];
 
     self.genderString = [currentUser objectForKey:@"gender"];
 
@@ -61,8 +64,9 @@
     [self.view addGestureRecognizer:right];}
 
 - (void)viewWillAppear:(BOOL)animated {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [self.names removeAllObjects];
+    [self.genders removeAllObjects];
     // query to populate array
     // https://parse.com/docs/ios_guide#queries/iOS
     
@@ -75,46 +79,67 @@
         genderLetter =@"All";
     }
     [self.activityIndicator startAnimating];
-    PFQuery *query = [PFQuery queryWithClassName:@"name"];
+    DBQuery *query = [DBQuery queryWithClassName:@"Name"];
     
-    NSString *genderString = [currentUser objectForKey:@"gender"];
-    if (![genderString isEqualToString:@"All"]) {
-        [query whereKey:@"gender" equalTo:genderLetter];
-    }
+    // We query by name prefix in Firestore (which uses the automatic single-field index).
+    // We filter by gender locally to avoid missing composite index errors.
+    
     if (![self.letterString isEqualToString:@"ALL"]) {
-        [query whereKey:@"name" matchesRegex:[NSString stringWithFormat:@"%@.*", self.letterString ]];
+        [query whereKey:@"name" matchesRegex:[NSString stringWithFormat:@"%@.*", self.letterString]];
     }
-    if ([self.sortString isEqualToString:@"popular"]) {
-        [query orderByAscending:@"rank"];
-    } else if ([self.sortString isEqualToString:@"uncommon"]) {
-        [query orderByDescending:@"rank"];
-    } else if ([self.sortString isEqualToString:@"namesAtoZ"]) {
+    
+    if ([self.sortString isEqualToString:@"namesAtoZ"]) {
         [query orderByAscending:@"name"];
     } else if ([self.sortString isEqualToString:@"namesZtoA"]) {
         [query orderByDescending:@"name"];
     } else {
-        [query orderByAscending:@"rank"];
+        [query orderByAscending:@"name"]; // Fallback to name since rank doesn't exist
     }
-    query.limit = self.limitNumber;
+    
+    // We fetch without limit in Firestore to ensure local filtering works correctly
+    // query.limit = self.limitNumber;
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
-            for (PFObject *object in objects) {
-                [self.names addObject:[object valueForKey:@"name"]];
+            for (DBObject *object in objects) {
+                NSString *n = [object objectForKey:@"name"];
+                NSString *g = [object objectForKey:@"gender"];
+                
+                BOOL genderMatch = YES;
+                if (![genderLetter isEqualToString:@"All"]) {
+                    genderMatch = [g isEqualToString:genderLetter];
+                }
+                
+                BOOL letterMatch = YES;
+                if (![self.letterString isEqualToString:@"ALL"]) {
+                    letterMatch = [[n lowercaseString] hasPrefix:[self.letterString lowercaseString]];
+                }
+                
+                if (genderMatch && letterMatch) {
+                    [self.names addObject:n];
+                    [self.genders addObject:g];
+                    if (self.names.count >= self.limitNumber) {
+                        break; // Apply limit locally
+                    }
+                }
             }
-        } else {
         }
         [self.namesTable reloadData];
         [self setRandomName];
         [self.activityIndicator stopAnimating];
-        [self.namesTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.index inSection:0] animated:YES scrollPosition:UITableViewScrollPositionMiddle];
-        [self setNameToUser];
+        if (self.names.count > 0 && self.index < self.names.count) {
+            [self.namesTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.index inSection:0] animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+            [self setNameToUser];
+        } else {
+            self.name.text = @"No names found";
+            self.index = 0; // Reset index if no names found to prevent crashes
+        }
     }];
 }
 
 #pragma mark - set name to user
 
 - (void) setNameToUser {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:self.names[self.index] forKey:@"name"];
     [currentUser saveInBackground];
 }
@@ -132,6 +157,10 @@
 #pragma mark - random
 
 - (void)setRandomName {
+    if ([self.names count] == 0) {
+        [self.name setText:@"No names found"];
+        return;
+    }
     int lo = 0;
     int hi = (int)[self.names count];
     self.index = lo + arc4random() % (hi - lo);
@@ -189,7 +218,7 @@
         // save name
         // https://parse.com/docs/ios_guide#objects-saving/iOS
         
-        PFQuery *query = [PFQuery queryWithClassName:@"names"];
+        DBQuery *query = [DBQuery queryWithClassName:@"names"];
         [query whereKey:@"name" equalTo:self.names[indexPath.row]];
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (objects.count>0){
@@ -198,9 +227,9 @@
                 self.nameChosen = @"NO";
             }
             if ([self.nameChosen isEqualToString:@"NO"]) {
-                PFUser *currentUser = [PFUser currentUser];
+                DBUser *currentUser = [DBUser currentUser];
                 
-                PFObject *object = [PFObject objectWithClassName:@"names"];
+                DBObject *object = [DBObject objectWithClassName:@"names"];
                 object[@"name"] = self.names[indexPath.row];
                 object[@"gender"] = genderLetter;
                 object[@"userId"] = [currentUser objectId];
@@ -248,7 +277,7 @@
 
 - (void)leftEdge: (UIScreenEdgePanGestureRecognizer*)edgeRecognizer{
     [self lastPage];
-    [self performSegueWithIdentifier:@"home" sender:edgeRecognizer];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)rightEdge: (UIScreenEdgePanGestureRecognizer*)edgeRecognizer{
@@ -259,6 +288,7 @@
 #pragma mark - segue
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [segue.destinationViewController setModalPresentationStyle:UIModalPresentationFullScreen];
     [self lastPage];
     NSString *genderLetter;
     if ([self.genderString isEqual:@"👦"]) {
@@ -271,7 +301,11 @@
     NSString *name;
     if ([[segue identifier] isEqualToString:@"info"]||[[segue identifier] isEqualToString:@"home"]) {
         NSIndexPath *indexPath = [self.namesTable indexPathForSelectedRow];
-        name = self.names[indexPath.row];
+        if (indexPath && indexPath.row < self.names.count) {
+            name = self.names[indexPath.row];
+        } else {
+            name = @"None";
+        }
         NSString *string = [NSString stringWithFormat:@"%@,%@,%@,%i", genderLetter, self.letterString, name, self.limitNumber];
         [[segue destinationViewController] setDetailItem:string];
     }
@@ -289,6 +323,26 @@
         cell = [[UITableViewCell alloc] initWithFrame:CGRectZero];
     }
     cell.textLabel.text = [self.names objectAtIndex:indexPath.row];
+    cell.textLabel.textColor = [UIColor labelColor];
+    if (indexPath.row < self.genders.count) {
+        if ([[self.genders objectAtIndex:indexPath.row] isEqual:@"F"]) {
+            cell.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+                return tc.userInterfaceStyle == UIUserInterfaceStyleDark ? [UIColor colorWithRed:0.37 green:0.12 blue:0.24 alpha:1.0] : [UIColor colorWithRed:1 green:.8 blue:.85 alpha:1];
+            }];
+            cell.selectedBackgroundView = [UIView new];
+            cell.selectedBackgroundView.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+                return tc.userInterfaceStyle == UIUserInterfaceStyleDark ? [UIColor colorWithRed:0.5 green:0.15 blue:0.3 alpha:1.0] : [UIColor colorWithRed:.8 green:.6 blue:.65 alpha:1];
+            }];
+        } else {
+            cell.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+                return tc.userInterfaceStyle == UIUserInterfaceStyleDark ? [UIColor colorWithRed:0.12 green:0.21 blue:0.37 alpha:1.0] : [UIColor colorWithRed:.8 green:.85 blue:1 alpha:1];
+            }];
+            cell.selectedBackgroundView = [UIView new];
+            cell.selectedBackgroundView.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull tc) {
+                return tc.userInterfaceStyle == UIUserInterfaceStyleDark ? [UIColor colorWithRed:0.18 green:0.3 blue:0.5 alpha:1.0] : [UIColor colorWithRed:.6 green:.65 blue:0.8 alpha:1];
+            }];
+        }
+    }
     return cell;
 }
 
@@ -305,14 +359,95 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {        
         [self.names removeObjectAtIndex:indexPath.row];
+        if (indexPath.row < self.genders.count) {
+            [self.genders removeObjectAtIndex:indexPath.row];
+        }
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
     }
     [self.namesTable reloadData];
+    
+    [self layoutProgrammatically];
+}
+
+- (void)layoutProgrammatically {
+    [self.view removeConstraints:self.view.constraints];
+    [self.name removeConstraints:self.name.constraints];
+    [self.namesTable removeConstraints:self.namesTable.constraints];
+    
+    self.name.translatesAutoresizingMaskIntoConstraints = NO;
+    self.name.textColor = [UIColor blackColor];
+    self.namesTable.translatesAutoresizingMaskIntoConstraints = NO;
+    self.activityIndicator.translatesAutoresizingMaskIntoConstraints = NO;
+    self.genderLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.letterLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // Find buttons
+    UIButton *cancelBtn = nil, *saveBtn = nil, *homeBtn = nil, *shuffleBtn = nil;
+    for (UIView *v in self.view.subviews) {
+        if ([v isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)v;
+            btn.translatesAutoresizingMaskIntoConstraints = NO;
+            NSString *title = [btn titleForState:UIControlStateNormal];
+            if ([title isEqualToString:@"✖️"]) cancelBtn = btn;
+            else if ([title isEqualToString:@"❤️"]) saveBtn = btn;
+            else if (btn.frame.origin.y < 100) {
+                if (btn.frame.origin.x < 150) homeBtn = btn;
+                else shuffleBtn = btn;
+            }
+        }
+    }
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [self.name.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.name.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:70],
+        [self.name.widthAnchor constraintEqualToAnchor:self.view.widthAnchor constant:-40],
+        
+        [self.namesTable.topAnchor constraintEqualToAnchor:self.name.bottomAnchor constant:20],
+        [self.namesTable.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [self.namesTable.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        
+        [self.activityIndicator.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.activityIndicator.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        
+        [self.genderLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+        [self.genderLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
+        
+        [self.letterLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30]
+    ]];
+    
+    if (homeBtn && shuffleBtn) {
+        [NSLayoutConstraint activateConstraints:@[
+            [homeBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [homeBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            
+            [shuffleBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+        ]];
+    }
+
+    if (cancelBtn && saveBtn) {
+        [NSLayoutConstraint activateConstraints:@[
+            [cancelBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-40],
+            [cancelBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:60],
+            
+            [saveBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-40],
+            [saveBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-60],
+            
+            [self.namesTable.bottomAnchor constraintEqualToAnchor:cancelBtn.topAnchor constant:-20]
+        ]];
+    } else {
+        [NSLayoutConstraint activateConstraints:@[
+            [self.namesTable.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+        ]];
+    }
+    
+
 }
 
 - (void)lastPage {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"NewNames" forKey:@"lastPage"];
     [currentUser saveInBackground];
 }

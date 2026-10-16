@@ -32,7 +32,7 @@
     } if ([self.genderString isEqual:@"👧"]) {
         [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
     }
-    self.urlString = @"http://www.behindthename.com/name/";
+    self.urlString = @"https://www.behindthename.com/name/";
     
     self.genderLabel.text = self.genderString;
     if ([self.letterString isEqualToString:@"ALL"]) {
@@ -58,28 +58,75 @@
     right.edges = UIRectEdgeRight;
     [self.view addGestureRecognizer:left];
     [self.view addGestureRecognizer:right];
+    
+    [self layoutProgrammatically];
+}
+
+- (void)layoutProgrammatically {
+    [self.view removeConstraints:self.view.constraints];
+    [self.nameLabel removeConstraints:self.nameLabel.constraints];
+    [self.webView removeConstraints:self.webView.constraints];
+    
+    self.nameLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.webView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.genderLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.letterLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    UIButton *backBtn = nil, *saveBtn = nil;
+    for (UIView *v in self.view.subviews) {
+        if ([v isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)v;
+            btn.translatesAutoresizingMaskIntoConstraints = NO;
+            NSString *title = [btn titleForState:UIControlStateNormal];
+            if ([title isEqualToString:@"◀️"]) backBtn = btn;
+            else if ([title isEqualToString:@"💾"]) saveBtn = btn;
+        }
+    }
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [self.nameLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.nameLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:70],
+        [self.nameLabel.widthAnchor constraintEqualToAnchor:self.view.widthAnchor constant:-40],
+        
+        [self.webView.topAnchor constraintEqualToAnchor:self.nameLabel.bottomAnchor constant:20],
+        [self.webView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [self.webView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [self.webView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor],
+        
+        [self.genderLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+        [self.genderLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
+        
+        [self.letterLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30]
+    ]];
+    
+    if (backBtn) {
+        [NSLayoutConstraint activateConstraints:@[
+            [backBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [backBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20]
+        ]];
+    }
+    
+    if (saveBtn) {
+        [NSLayoutConstraint activateConstraints:@[
+            [saveBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [saveBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+        ]];
+    }
 }
 
 #pragma mark - buttons
+
+- (void)dealloc {
+    self.webView.delegate = nil;
+}
 
 - (IBAction)back:(id)sender {
     [self goBack];
 }
 
 - (void)goBack {
-    PFUser *currentUser = [PFUser currentUser];
-    NSString *lastPage = [currentUser objectForKey:@"lastPage"];
-    if ([lastPage isEqualToString:@"NewNames" ]) {
-        NameController *viewController = [self.storyboard instantiateViewControllerWithIdentifier:@"NameController"];
-        [self.view.window makeKeyAndVisible];
-        [self presentViewController:viewController animated:YES completion:nil];
-    }
-    if ([lastPage isEqualToString:@"MyNames" ]) {
-        NamesController *viewController = [self.storyboard instantiateViewControllerWithIdentifier:@"NamesController"];
-        [self.view.window makeKeyAndVisible];
-        [self presentViewController:viewController animated:YES completion:nil];
-    }
-    [self lastPage];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (IBAction)save:(id)sender {
@@ -95,7 +142,7 @@
     // save name
     // https://parse.com/docs/ios_guide#objects-saving/iOS
     
-    PFQuery *query = [PFQuery queryWithClassName:@"names"];
+    DBQuery *query = [DBQuery queryWithClassName:@"names"];
     [query whereKey:@"name" equalTo:self.nameString];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (objects.count>0){
@@ -104,9 +151,9 @@
             self.nameChosen = @"NO";
         }
         if ([self.nameChosen isEqualToString:@"NO"]) {
-            PFUser *currentUser = [PFUser currentUser];
+            DBUser *currentUser = [DBUser currentUser];
             
-            PFObject *object = [PFObject objectWithClassName:@"names"];
+            DBObject *object = [DBObject objectWithClassName:@"names"];
             object[@"name"] = self.nameString;
             object[@"gender"] = genderLetter;
             object[@"userId"] = [currentUser objectId];
@@ -165,6 +212,7 @@
 #pragma mark - segue
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [segue.destinationViewController setModalPresentationStyle:UIModalPresentationFullScreen];
     NSString *genderLetter;
     if ([self.genderString isEqual:@"👦"]) {
         genderLetter =@"M";
@@ -179,7 +227,7 @@
 }
 
 - (void)lastPage {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"Info" forKey:@"lastPage"];
     [currentUser saveInBackground];
 }

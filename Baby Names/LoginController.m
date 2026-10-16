@@ -1,7 +1,6 @@
-
 #import "LoginController.h"
 
-@interface LoginController ()
+@interface LoginController () <UITextFieldDelegate>
 
 @end
 
@@ -10,12 +9,13 @@
 #pragma mark - view
 
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     [self getUser];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self getUser];
+    
     UIScreenEdgePanGestureRecognizer *left = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(leftEdge:)];
     UIScreenEdgePanGestureRecognizer *right = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(rightEdge:)];
     left.edges = UIRectEdgeLeft;
@@ -23,164 +23,268 @@
     [self.view addGestureRecognizer:left];
     [self.view addGestureRecognizer:right];
     
-    PFUser *currentUser = [PFUser currentUser];
-    if ([[currentUser username] isEqualToString:@""]) {
-        self.usernameLabel.text = @" ";
-    }
-    if ([[currentUser email] isEqualToString:@""]) {
-        self.emailLabel.text = @" ";
-    }
-    if ([[currentUser password] isEqualToString:@""]) {
-        self.passwordLabel.text = @" ";
-    }
-    if (currentUser!=nil) {
-        self.usernameString = [[currentUser username] capitalizedString];
-        self.emailString = [currentUser email];
-        self.passwordString = [currentUser password];
-        self.usernameLabel.text = self.usernameString;
-        self.emailLabel.text = self.emailString;
-        self.passwordLabel.text = self.passwordString;
-    } else {
-        self.usernameString = @"";
-        self.emailString = @"";
-        self.passwordString = @"";
-        self.usernameLabel.text = self.usernameString;
-        self.emailLabel.text = self.emailString;
-        self.passwordLabel.text = self.passwordString;
-    }
+    [self layoutProgrammatically];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(textDidChange:)
+                                                 name:UITextFieldTextDidChangeNotification
+                                               object:nil];
+    
+    [self getUser];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)textDidChange:(NSNotification *)note {
+    [self updateButtonStates];
 }
 
 - (void)getUser {
-    PFUser *currentUser = [PFUser currentUser];
-    if ([PFUser currentUser] != nil) {
-        [self.loginButton setAlpha:0];
-        [self.signupButton setAlpha:0];
-        [self.logoutButton setAlpha:1];
-        [self.loginLabel setAlpha:0];
-        [self.passwordLabel setAlpha:0];
-        self.loginLabel.text = [currentUser email];
-        [self.loginLabel adjustsFontSizeToFitWidth];
-        self.loginLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-        self.loginLabel.text = [currentUser.username capitalizedString];
+    DBUser *currentUser = [DBUser currentUser];
+    if (currentUser != nil) {
+        self.loginLabel.text = [NSString stringWithFormat:@"Logged in as:\n%@", currentUser.email ?: currentUser.username ?: @"User"];
+        self.loginLabel.textColor = [UIColor labelColor];
+        self.emailLabel.hidden = YES;
+        self.passwordLabel.hidden = YES;
+        self.forgotButton.hidden = YES;
+        self.beginButton.hidden = YES;
+        self.googleBeginButton.hidden = YES;
+        self.logoutButton.hidden = NO;
+        self.logoutButton.alpha = 1.0;
+        
+        self.loginButton.hidden = YES;
+        self.signupButton.hidden = YES;
     } else {
-        [self.loginButton setAlpha:1];
-        [self.signupButton setAlpha:1];
-        [self.logoutButton setAlpha:0];
-        [self.loginLabel setAlpha:1];
-        [self.passwordLabel setAlpha:1];
-        self.loginLabel.text = @"login";
-        self.usernameLabel.text = @"";
-        self.emailLabel.text = @"";
-        self.passwordLabel.text = @"";
+        self.loginLabel.text = @"Type your email and password below.";
+        self.loginLabel.textColor = [UIColor labelColor];
+        self.emailLabel.hidden = NO;
+        self.passwordLabel.hidden = NO;
+        self.forgotButton.hidden = NO;
+        self.beginButton.hidden = NO;
+        self.googleBeginButton.hidden = NO;
+        self.logoutButton.hidden = YES;
+        
+        self.loginButton.hidden = YES;
+        self.signupButton.hidden = YES;
+        
+        [self updateButtonStates];
     }
+}
+
+- (void)updateButtonStates {
+    if ([DBUser currentUser] == nil) {
+        NSString *e = [self.emailLabel.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        NSString *p = self.passwordLabel.text;
+        if (e.length > 0 && p.length > 0) {
+            self.beginButton.enabled = YES;
+            self.beginButton.alpha = 1.0;
+        } else {
+            self.beginButton.enabled = NO;
+            self.beginButton.alpha = 0.4;
+        }
+    }
+}
+
+- (void)layoutProgrammatically {
+    self.view.backgroundColor = [UIColor systemBackgroundColor];
+    
+    // Hide original storyboard login/signup buttons
+    self.loginButton.hidden = YES;
+    self.signupButton.hidden = YES;
+    
+    // Style text fields
+    self.emailLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.emailLabel.textColor = [UIColor labelColor];
+    self.emailLabel.backgroundColor = [UIColor secondarySystemFillColor];
+    self.emailLabel.borderStyle = UITextBorderStyleRoundedRect;
+    self.emailLabel.placeholder = @"Email";
+    self.emailLabel.keyboardType = UIKeyboardTypeEmailAddress;
+    self.emailLabel.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    [self.emailLabel.heightAnchor constraintEqualToConstant:48].active = YES;
+    self.emailLabel.delegate = self;
+    
+    self.passwordLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.passwordLabel.textColor = [UIColor labelColor];
+    self.passwordLabel.backgroundColor = [UIColor secondarySystemFillColor];
+    self.passwordLabel.borderStyle = UITextBorderStyleRoundedRect;
+    self.passwordLabel.placeholder = @"Password";
+    self.passwordLabel.secureTextEntry = YES;
+    [self.passwordLabel.heightAnchor constraintEqualToConstant:48].active = YES;
+    self.passwordLabel.delegate = self;
+    
+    // Label
+    self.loginLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.loginLabel.textColor = [UIColor labelColor];
+    self.loginLabel.textAlignment = NSTextAlignmentCenter;
+    self.loginLabel.numberOfLines = 0;
+    
+    // Forgot Password Button
+    self.forgotButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.forgotButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.forgotButton setTitle:@"Forgot Password?" forState:UIControlStateNormal];
+    [self.forgotButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    [self.forgotButton addTarget:self action:@selector(forgotPasswordTapped:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // Begin Button
+    self.beginButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.beginButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.beginButton setTitle:@"Begin" forState:UIControlStateNormal];
+    self.beginButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    self.beginButton.backgroundColor = [UIColor systemBlueColor];
+    [self.beginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.beginButton.layer.cornerRadius = 10;
+    [self.beginButton.heightAnchor constraintEqualToConstant:50].active = YES;
+    [self.beginButton addTarget:self action:@selector(beginAction:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // Begin with Google Button
+    self.googleBeginButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.googleBeginButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.googleBeginButton setTitle:@"Begin with Google" forState:UIControlStateNormal];
+    self.googleBeginButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    self.googleBeginButton.backgroundColor = [UIColor colorWithRed:0.26 green:0.52 blue:0.96 alpha:1.0];
+    [self.googleBeginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.googleBeginButton.layer.cornerRadius = 10;
+    [self.googleBeginButton.heightAnchor constraintEqualToConstant:50].active = YES;
+    [self.googleBeginButton addTarget:self action:@selector(beginWithGoogleAction:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // Logout Button
+    self.logoutButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.logoutButton setTitle:@"Log Out" forState:UIControlStateNormal];
+    self.logoutButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    self.logoutButton.backgroundColor = [UIColor systemRedColor];
+    [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.logoutButton.layer.cornerRadius = 10;
+    [self.logoutButton.heightAnchor constraintEqualToConstant:50].active = YES;
+    [self.logoutButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
+    [self.logoutButton addTarget:self action:@selector(logoutAction:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // UIStackView
+    UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[
+        self.loginLabel,
+        self.emailLabel,
+        self.passwordLabel,
+        self.forgotButton,
+        self.beginButton,
+        self.googleBeginButton,
+        self.logoutButton
+    ]];
+    stack.axis = UILayoutConstraintAxisVertical;
+    stack.spacing = 16;
+    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:stack];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [stack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-20],
+        [stack.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:32],
+        [stack.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-32]
+    ]];
+}
+
+- (void)beginAction:(id)sender {
+    [self begin];
+}
+
+- (void)begin {
+    NSString *email = [self.emailLabel.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    NSString *password = self.passwordLabel.text;
+    
+    self.loginLabel.text = @"Checking account...";
+    self.loginLabel.textColor = [UIColor labelColor];
+    
+    [DBUser beginWithEmail:email password:password block:^(DBUser *user, BOOL isNewUser, NSError *error) {
+        if (user) {
+            [self getUser];
+            [self performSegueWithIdentifier:@"home" sender:nil];
+            [self lastPage];
+        } else {
+            self.loginLabel.text = error.localizedDescription ?: @"Authentication error";
+            self.loginLabel.textColor = [UIColor systemRedColor];
+        }
+    }];
+}
+
+- (void)beginWithGoogleAction:(id)sender {
+    [self beginWithGoogle];
+}
+
+- (void)beginWithGoogle {
+    self.loginLabel.text = @"Signing in with Google...";
+    self.loginLabel.textColor = [UIColor labelColor];
+    
+    [DBUser beginWithGoogleFromViewController:self block:^(DBUser *user, NSError *error) {
+        if (user) {
+            [self getUser];
+            [self performSegueWithIdentifier:@"home" sender:nil];
+            [self lastPage];
+        } else {
+            self.loginLabel.text = error.localizedDescription ?: @"Google Sign-In failed";
+            self.loginLabel.textColor = [UIColor systemRedColor];
+        }
+    }];
+}
+
+- (void)logoutAction:(id)sender {
+    [DBUser logOut];
+    self.emailLabel.text = @"";
+    self.passwordLabel.text = @"";
+    [self getUser];
+}
+
+- (void)forgotPasswordTapped:(id)sender {
+    NSString *email = [self.emailLabel.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (email.length == 0) {
+        self.loginLabel.text = @"Enter email to reset password";
+        self.loginLabel.textColor = [UIColor systemRedColor];
+        return;
+    }
+    
+    [DBUser requestPasswordResetForEmailInBackground:email block:^(BOOL succeeded, NSError * _Nullable error) {
+        if (succeeded) {
+            self.loginLabel.text = @"Password reset email sent";
+            self.loginLabel.textColor = [UIColor systemGreenColor];
+        } else {
+            self.loginLabel.text = error.localizedDescription ?: @"Error resetting password";
+            self.loginLabel.textColor = [UIColor systemRedColor];
+        }
+    }];
 }
 
 #pragma mark - text field delegate
 
-- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
-    return YES;
-}
-
-- (void)textFieldDidBeginEditing:(UITextField *)textField{}
-
-- (BOOL)textFieldShouldEndEditing:(UITextField *)textField {
-    return YES;
-}
-
-- (void)textFieldDidEndEditing:(UITextField *)textField {}
-
-- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    return YES;
-}
-
-- (BOOL)textFieldShouldClear:(UITextField *)textField {
-    return YES;
-}
-
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    NSInteger nextTag = textField.tag + 1;
-    UIResponder* nextResponder = [textField.superview viewWithTag:nextTag];
-    if (nextResponder) {
-        [nextResponder becomeFirstResponder];
+    if (textField == self.emailLabel) {
+        [self.passwordLabel becomeFirstResponder];
     } else {
         [textField resignFirstResponder];
-        self.usernameString = self.usernameLabel.text;
-        self.passwordString = self.passwordLabel.text;
-        [self logIn];
+        [self begin];
     }
     return NO;
 }
 
 #pragma mark - edge pan gesture
 
-- (void)leftEdge: (UIScreenEdgePanGestureRecognizer*)edgeRecognizer{
-    [self logIn];
-}
-
-- (void)rightEdge: (UIScreenEdgePanGestureRecognizer*)edgeRecognizer{
-    [self logIn];
-}
-
-#pragma mark - buttons
-
-- (IBAction)signup:(id)sender {
-    [self signUp];
-}
-
-- (IBAction)login:(id)sender {
-    [self logIn];
-}
-
-- (IBAction)logout:(id)sender {
-    [PFUser logOut];
-    [self getUser];
-}
-
-- (void)signUp {
-    PFUser *user = [PFUser user];
-    user.username = [self.usernameLabel.text lowercaseString];
-    user.email = [self.emailLabel.text lowercaseString];
-    user.password = self.passwordLabel.text;
-    user[@"limit"] = @25;
-    user[@"letter"] = @"A";
-    user[@"name"] = @"Adam";
-    user[@"gender"] = @"M";
-    user[@"lastPage"] = @"Account";
-    user[@"sort"] = @"popular";
-    
-    [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-        [self logIn];
-    }];
-}
-
-- (void)logIn {
-    PFUser *currentUser = [PFUser currentUser];
-    if (currentUser) {
+- (void)leftEdge:(UIScreenEdgePanGestureRecognizer *)edgeRecognizer {
+    if ([DBUser currentUser]) {
         [self performSegueWithIdentifier:@"home" sender:nil];
-    } else {
-        currentUser = [PFUser user];
-        currentUser.username = self.usernameString;
-        if (self.passwordString == nil) {
-            self.passwordString = @"password";
-        }
-        currentUser.password = self.passwordString;
-        [PFUser logInWithUsernameInBackground:[self.usernameLabel.text lowercaseString] password:[self.passwordLabel.text lowercaseString] block:^(PFUser *user, NSError *error) {
-            if (user) {
-                [self getUser];
-                [self performSegueWithIdentifier:@"home" sender:nil];
-            } else {
-                self.loginLabel.text = @"login";
-                [self signUp];
-            }
-        }];
-        [self lastPage];
+    }
+}
+
+- (void)rightEdge:(UIScreenEdgePanGestureRecognizer *)edgeRecognizer {
+    if ([DBUser currentUser]) {
+        [self performSegueWithIdentifier:@"home" sender:nil];
     }
 }
 
 - (void)lastPage {
-    PFUser *currentUser = [PFUser currentUser];
+    DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"Account" forKey:@"lastPage"];
     [currentUser saveInBackground];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [segue.destinationViewController setModalPresentationStyle:UIModalPresentationFullScreen];
 }
 
 @end

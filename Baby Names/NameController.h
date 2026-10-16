@@ -1,6 +1,6 @@
 
 #import <UIKit/UIKit.h>
-#import <Parse/Parse.h>
+#import "Database.h"
 
 @interface NameController : UIViewController
 
@@ -18,6 +18,7 @@
 @property int limitNumber;
 
 @property NSMutableArray *names;
+@property NSMutableArray *genders;
 @property int index;
 
 @property NSString *nameChosen;

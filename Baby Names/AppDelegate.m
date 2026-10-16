@@ -1,6 +1,6 @@
-
-#import <Parse/Parse.h>
+#import "Database.h"
 #import "AppDelegate.h"
+#import <GoogleSignIn/GoogleSignIn.h>
 
 @interface AppDelegate ()
 
@@ -8,10 +8,17 @@
 
 @implementation AppDelegate
 
+@synthesize window;
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    [Parse enableLocalDatastore];
-    [Parse setApplicationId:@"bm6jT0Rj1lUCwutfFk1WUgXm4wLRpN1Jz4LKMLqw" clientKey:@"Y8IFJzyA64AhAUOh7TvOn7FXd3U6xcIhwY4pQWuz"];
+    [Database enableLocalDatastore];
+    [Database setApplicationId:@"bm6jT0Rj1lUCwutfFk1WUgXm4wLRpN1Jz4LKMLqw" clientKey:@"Y8IFJzyA64AhAUOh7TvOn7FXd3U6xcIhwY4pQWuz"];
+
     return YES;
+}
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+    return [GIDSignIn.sharedInstance handleURL:url];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {}
