@@ -87,44 +87,102 @@
     }
 }
 
+- (void)updateBorderColors {
+    self.emailLabel.layer.borderColor = [UIColor separatorColor].CGColor;
+    self.passwordLabel.layer.borderColor = [UIColor separatorColor].CGColor;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    [self updateBorderColors];
+}
+
 - (void)layoutProgrammatically {
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     
-    // Hide original storyboard login/signup buttons
-    self.loginButton.hidden = YES;
-    self.signupButton.hidden = YES;
+    // Clean any existing subviews from storyboard just in case
+    for (UIView *sub in [self.view.subviews copy]) {
+        [sub removeFromSuperview];
+    }
     
-    // Style text fields
+    // Tap to dismiss keyboard
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self.view action:@selector(endEditing:)];
+    tap.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tap];
+    
+    // Status/Header Label
+    self.loginLabel = [[UILabel alloc] init];
+    self.loginLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.loginLabel.textColor = [UIColor labelColor];
+    self.loginLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightMedium];
+    self.loginLabel.textAlignment = NSTextAlignmentCenter;
+    self.loginLabel.numberOfLines = 0;
+    self.loginLabel.alpha = 1.0;
+    
+    // Email Field
+    self.emailLabel = [[UITextField alloc] init];
     self.emailLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.emailLabel.textColor = [UIColor labelColor];
-    self.emailLabel.backgroundColor = [UIColor secondarySystemFillColor];
-    self.emailLabel.borderStyle = UITextBorderStyleRoundedRect;
-    self.emailLabel.placeholder = @"Email";
+    self.emailLabel.backgroundColor = [UIColor secondarySystemBackgroundColor];
+    self.emailLabel.borderStyle = UITextBorderStyleNone;
+    self.emailLabel.layer.cornerRadius = 10;
+    self.emailLabel.layer.masksToBounds = YES;
+    self.emailLabel.layer.borderWidth = 1.0;
+    self.emailLabel.font = [UIFont systemFontOfSize:16];
+    self.emailLabel.tintColor = [UIColor systemBlueColor];
     self.emailLabel.keyboardType = UIKeyboardTypeEmailAddress;
     self.emailLabel.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.emailLabel.autocorrectionType = UITextAutocorrectionTypeNo;
+    self.emailLabel.spellCheckingType = UITextSpellCheckingTypeNo;
+    self.emailLabel.clearsOnBeginEditing = NO;
+    self.emailLabel.returnKeyType = UIReturnKeyNext;
+    self.emailLabel.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                            attributes:@{NSForegroundColorAttributeName: [UIColor placeholderTextColor]}];
+    UIView *emailPadding = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 48)];
+    self.emailLabel.leftView = emailPadding;
+    self.emailLabel.leftViewMode = UITextFieldViewModeAlways;
+    UIView *emailRightPadding = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 48)];
+    self.emailLabel.rightView = emailRightPadding;
+    self.emailLabel.rightViewMode = UITextFieldViewModeAlways;
     [self.emailLabel.heightAnchor constraintEqualToConstant:48].active = YES;
     self.emailLabel.delegate = self;
     
+    // Password Field
+    self.passwordLabel = [[UITextField alloc] init];
     self.passwordLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.passwordLabel.textColor = [UIColor labelColor];
-    self.passwordLabel.backgroundColor = [UIColor secondarySystemFillColor];
-    self.passwordLabel.borderStyle = UITextBorderStyleRoundedRect;
-    self.passwordLabel.placeholder = @"Password";
+    self.passwordLabel.backgroundColor = [UIColor secondarySystemBackgroundColor];
+    self.passwordLabel.borderStyle = UITextBorderStyleNone;
+    self.passwordLabel.layer.cornerRadius = 10;
+    self.passwordLabel.layer.masksToBounds = YES;
+    self.passwordLabel.layer.borderWidth = 1.0;
+    self.passwordLabel.font = [UIFont systemFontOfSize:16];
+    self.passwordLabel.tintColor = [UIColor systemBlueColor];
     self.passwordLabel.secureTextEntry = YES;
+    self.passwordLabel.clearsOnBeginEditing = NO;
+    self.passwordLabel.returnKeyType = UIReturnKeyDone;
+    self.passwordLabel.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Password"
+                                                                               attributes:@{NSForegroundColorAttributeName: [UIColor placeholderTextColor]}];
+    UIView *passPadding = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 48)];
+    self.passwordLabel.leftView = passPadding;
+    self.passwordLabel.leftViewMode = UITextFieldViewModeAlways;
+    UIView *passRightPadding = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14, 48)];
+    self.passwordLabel.rightView = passRightPadding;
+    self.passwordLabel.rightViewMode = UITextFieldViewModeAlways;
     [self.passwordLabel.heightAnchor constraintEqualToConstant:48].active = YES;
     self.passwordLabel.delegate = self;
     
-    // Label
-    self.loginLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    self.loginLabel.textColor = [UIColor labelColor];
-    self.loginLabel.textAlignment = NSTextAlignmentCenter;
-    self.loginLabel.numberOfLines = 0;
+    [self updateBorderColors];
+    if (@available(iOS 17.0, *)) {
+        [self registerForTraitChanges:@[[UITraitUserInterfaceStyle self]] withAction:@selector(updateBorderColors)];
+    }
     
     // Forgot Password Button
     self.forgotButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.forgotButton.translatesAutoresizingMaskIntoConstraints = NO;
     [self.forgotButton setTitle:@"Forgot Password?" forState:UIControlStateNormal];
     [self.forgotButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    self.forgotButton.titleLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightRegular];
     [self.forgotButton addTarget:self action:@selector(forgotPasswordTapped:) forControlEvents:UIControlEventTouchUpInside];
     
     // Begin Button
@@ -150,6 +208,7 @@
     [self.googleBeginButton addTarget:self action:@selector(beginWithGoogleAction:) forControlEvents:UIControlEventTouchUpInside];
     
     // Logout Button
+    self.logoutButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.logoutButton.translatesAutoresizingMaskIntoConstraints = NO;
     [self.logoutButton setTitle:@"Log Out" forState:UIControlStateNormal];
     self.logoutButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
@@ -157,7 +216,6 @@
     [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.logoutButton.layer.cornerRadius = 10;
     [self.logoutButton.heightAnchor constraintEqualToConstant:50].active = YES;
-    [self.logoutButton removeTarget:nil action:NULL forControlEvents:UIControlEventAllEvents];
     [self.logoutButton addTarget:self action:@selector(logoutAction:) forControlEvents:UIControlEventTouchUpInside];
     
     // UIStackView

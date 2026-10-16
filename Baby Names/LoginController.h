@@ -3,12 +3,12 @@
 
 @interface LoginController : UIViewController
 
-@property (weak, nonatomic) IBOutlet UILabel *loginLabel;
-@property (weak, nonatomic) IBOutlet UITextField *emailLabel;
-@property (weak, nonatomic) IBOutlet UITextField *passwordLabel;
-@property (weak, nonatomic) IBOutlet UIButton *loginButton;
-@property (weak, nonatomic) IBOutlet UIButton *logoutButton;
-@property (weak, nonatomic) IBOutlet UIButton *signupButton;
+@property (nonatomic, strong) UILabel *loginLabel;
+@property (nonatomic, strong) UITextField *emailLabel;
+@property (nonatomic, strong) UITextField *passwordLabel;
+@property (nonatomic, strong) UIButton *loginButton;
+@property (nonatomic, strong) UIButton *logoutButton;
+@property (nonatomic, strong) UIButton *signupButton;
 
 @property (nonatomic, strong) UIButton *beginButton;
 @property (nonatomic, strong) UIButton *googleBeginButton;

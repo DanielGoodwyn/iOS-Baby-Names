@@ -17,90 +17,10 @@
                     <view key="view" contentMode="scaleToFill" id="pSe-eh-5Qi">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="YES" id="mkL-sd-7cd">
-                                <rect key="frame" x="175" y="120" width="250" height="300"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="YES" id="Mul-sO-Qgd">
-                                        <rect key="frame" x="0.0" y="250" width="75" height="50"/>
-                                        <state key="normal" title="Sign Up">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="signup:" destination="rf9-8Q-4C8" eventType="touchUpInside" id="dyI-Ja-aDU"/>
-                                        </connections>
-                                    </button>
-                                    <textField opaque="NO" clipsSubviews="YES" tag="2" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="email (required for signup)" textAlignment="center" clearsOnBeginEditing="YES" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="YES" id="ooN-xF-f4O">
-                                        <rect key="frame" x="25" y="200" width="200" height="30"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="emailAddress" returnKeyType="next"/>
-                                        <connections>
-                                            <outlet property="delegate" destination="rf9-8Q-4C8" id="C7Y-Ki-U83"/>
-                                        </connections>
-                                    </textField>
-                                    <textField opaque="NO" clipsSubviews="YES" tag="1" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="password (required)" textAlignment="center" clearsOnBeginEditing="YES" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="YES" id="8tb-NC-azu">
-                                        <rect key="frame" x="25" y="150" width="200" height="30"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" returnKeyType="done" secureTextEntry="YES"/>
-                                        <connections>
-                                            <outlet property="delegate" destination="rf9-8Q-4C8" id="C6y-mS-xMk"/>
-                                        </connections>
-                                    </textField>
-                                    
-                                    <label opaque="NO" userInteractionEnabled="NO" alpha="0.5" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="login" textAlignment="center" lineBreakMode="characterWrap" numberOfLines="2" minimumFontSize="12" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="YES" id="yNJ-wd-g7q">
-                                        <rect key="frame" x="25" y="62" width="200" height="30"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="YES" id="pFr-vy-Lbb">
-                                        <rect key="frame" x="175" y="250" width="75" height="50"/>
-                                        <state key="normal" title="Log In">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="login:" destination="rf9-8Q-4C8" eventType="touchUpInside" id="eo5-1c-0TY"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                                                        <constraint firstAttribute="height" constant="300" id="DWi-vQ-Cdo"/>
-                                    <constraint firstItem="ooN-xF-f4O" firstAttribute="top" secondItem="8tb-NC-azu" secondAttribute="bottom" constant="20" id="NQK-eZ-oBD"/>
-                                    <constraint firstAttribute="width" constant="250" id="b5i-kZ-gEq"/>
-                                                                        <constraint firstAttribute="centerX" secondItem="yNJ-wd-g7q" secondAttribute="centerX" id="xBM-vi-gry"/>
-                                    <constraint firstItem="Mul-sO-Qgd" firstAttribute="top" secondItem="ooN-xF-f4O" secondAttribute="bottom" constant="20" id="xh4-A8-UVd"/>
-                                    <constraint firstItem="pFr-vy-Lbb" firstAttribute="top" secondItem="ooN-xF-f4O" secondAttribute="bottom" constant="20" id="ym9-1w-KXt"/>
-                                </constraints>
-                            </view>
-                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="YES" id="Dxo-fK-MXW">
-                                <rect key="frame" x="263" y="370" width="75" height="50"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                <state key="normal" title="Log Out">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="logout:" destination="rf9-8Q-4C8" eventType="touchUpInside" id="FXu-e1-KfU"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstAttribute="centerY" secondItem="mkL-sd-7cd" secondAttribute="centerY" id="1hb-aa-i8d"/>
-                            <constraint firstItem="d9l-DW-NHK" firstAttribute="top" relation="greaterThanOrEqual" secondItem="mkL-sd-7cd" secondAttribute="bottom" constant="20" id="6xf-rt-cLy"/>
-                            <constraint firstItem="Dxo-fK-MXW" firstAttribute="top" secondItem="ooN-xF-f4O" secondAttribute="bottom" constant="20" id="Wko-Tn-vY9"/>
-                            <constraint firstAttribute="centerX" secondItem="mkL-sd-7cd" secondAttribute="centerX" id="o4v-0g-HME"/>
-                            <constraint firstItem="mkL-sd-7cd" firstAttribute="top" relation="greaterThanOrEqual" secondItem="Zf2-IF-JIr" secondAttribute="bottom" constant="20" id="otw-4n-2EE"/>
-                            <constraint firstItem="Dxo-fK-MXW" firstAttribute="centerX" secondItem="mkL-sd-7cd" secondAttribute="centerX" constant="0.5" id="wce-hw-gVN"/>
-                        </constraints>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <outlet property="emailLabel" destination="ooN-xF-f4O" id="wBL-2e-MTr"/>
-                        <outlet property="loginButton" destination="pFr-vy-Lbb" id="G6B-jw-DGs"/>
-                        <outlet property="loginLabel" destination="yNJ-wd-g7q" id="su2-2H-UUc"/>
-                        <outlet property="logoutButton" destination="Dxo-fK-MXW" id="AGn-Rf-shv"/>
-                        <outlet property="passwordLabel" destination="8tb-NC-azu" id="0CP-o4-YJl"/>
-                        <outlet property="signupButton" destination="Mul-sO-Qgd" id="iz3-MZ-Jko"/>
-                                                <segue destination="vXZ-lx-hvc" kind="show" identifier="home" id="Bjq-q7-4OB"/>
+                        <segue destination="vXZ-lx-hvc" kind="show" identifier="home" id="Bjq-q7-4OB"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TxG-99-ek3" userLabel="First Responder" sceneMemberID="firstResponder"/>
