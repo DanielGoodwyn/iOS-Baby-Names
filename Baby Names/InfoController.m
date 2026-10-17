@@ -22,31 +22,34 @@
     self.letterString = parsed[1];
     self.nameString = parsed[2];
     self.limitNumber = [parsed[3] intValue];
-    if ([self.genderString isEqual:@"M"]) {
-        self.genderString =@"👦";
-    } if ([self.genderString isEqual:@"F"]) {
-        self.genderString =@"👧";
+    if ([self.genderString isEqualToString:@"M"] || [self.genderString isEqualToString:@"👦"]) {
+        self.genderString = @"M";
+    } else if ([self.genderString isEqualToString:@"F"] || [self.genderString isEqualToString:@"👧"]) {
+        self.genderString = @"F";
+    } else {
+        self.genderString = @"All";
     }
-    if ([self.genderString isEqual:@"👦"]) {
+    
+    self.genderLabel.text = @"";
+    self.genderLabel.hidden = YES;
+    
+    if (!self.genderImageView) {
+        self.genderImageView = [[UIImageView alloc] init];
+        self.genderImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.genderImageView.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:self.genderImageView];
+    }
+    if ([self.genderString isEqualToString:@"M"]) {
+        self.genderImageView.image = [UIImage imageNamed:@"face_boy"];
         [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
-    } if ([self.genderString isEqual:@"👧"]) {
+    } else if ([self.genderString isEqualToString:@"F"]) {
+        self.genderImageView.image = [UIImage imageNamed:@"face_girl"];
         [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
+    } else {
+        self.genderImageView.image = [UIImage imageNamed:@"face_baby"];
+        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
     }
     self.urlString = @"https://www.behindthename.com/name/";
-    
-    self.genderLabel.text = self.genderString;
-    if ([self.letterString isEqualToString:@"ALL"]) {
-        self.letterLabel.text = @"*";
-    } else {
-        self.letterLabel.text = self.letterString;
-    }
-    
-    self.nameLabel.text = self.nameString;
-    if ([self.genderString isEqual:@"👦"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
-    } if ([self.genderString isEqual:@"👧"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
-    }
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@",self.urlString,self.nameString]];
     NSURLRequest *requestObj = [NSURLRequest requestWithURL:url];
     [self.webView loadRequest:requestObj];
@@ -71,6 +74,13 @@
     self.webView.translatesAutoresizingMaskIntoConstraints = NO;
     self.genderLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.letterLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    if (!self.genderImageView) {
+        self.genderImageView = [[UIImageView alloc] init];
+        self.genderImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.genderImageView.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:self.genderImageView];
+    }
     
     UIButton *backBtn = nil, *saveBtn = nil;
     for (UIView *v in self.view.subviews) {
@@ -106,11 +116,13 @@
         [self.webView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
         [self.webView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor],
         
-        [self.genderLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-        [self.genderLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
-        
         [self.letterLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30]
+        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30],
+        
+        [self.genderImageView.centerYAnchor constraintEqualToAnchor:self.letterLabel.centerYAnchor],
+        [self.genderImageView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
+        [self.genderImageView.widthAnchor constraintEqualToConstant:36],
+        [self.genderImageView.heightAnchor constraintEqualToConstant:36]
     ]];
     
     if (backBtn) {

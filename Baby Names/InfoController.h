@@ -7,6 +7,7 @@
 @property (strong, nonatomic) id detailItem;
 
 @property (weak, nonatomic) IBOutlet UILabel *genderLabel;
+@property (strong, nonatomic) UIImageView *genderImageView;
 @property (weak, nonatomic) IBOutlet UILabel *letterLabel;
 @property (weak, nonatomic) IBOutlet UILabel *nameLabel;
 @property (weak, nonatomic) IBOutlet UIWebView *webView;

@@ -25,8 +25,6 @@
         self.limitNumber = [parsed[3] intValue];
     }
     
-    [self layoutProgrammatically];
-    
     DBUser *currentUser = [DBUser currentUser];
 
     if (self.genderString == nil || [self.genderString length] == 0) {
@@ -42,14 +40,35 @@
     self.sortString = [currentUser objectForKey:@"sort"] ?: @"popular";
     
     if ([self.genderString isEqualToString:@"M"] || [self.genderString isEqualToString:@"👦"]) {
-        self.genderString = @"👦";
+        self.genderString = @"M";
     } else if ([self.genderString isEqualToString:@"F"] || [self.genderString isEqualToString:@"👧"]) {
-        self.genderString = @"👧";
+        self.genderString = @"F";
     } else {
-        self.genderString = @"👶"; // Defaults to both
+        self.genderString = @"All"; // Defaults to both
     }
         
-    self.genderLabel.text = self.genderString;
+    self.genderLabel.text = @"";
+    self.genderLabel.hidden = YES;
+    
+    if (!self.genderImageView) {
+        self.genderImageView = [[UIImageView alloc] init];
+        self.genderImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.genderImageView.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:self.genderImageView];
+    }
+    if ([self.genderString isEqualToString:@"M"]) {
+        self.genderImageView.image = [UIImage imageNamed:@"face_boy"];
+        [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
+    } else if ([self.genderString isEqualToString:@"F"]) {
+        self.genderImageView.image = [UIImage imageNamed:@"face_girl"];
+        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
+    } else {
+        self.genderImageView.image = [UIImage imageNamed:@"face_baby"];
+        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
+    }
+    
+    [self layoutProgrammatically];
+    
     if (self.letterString == nil || [self.letterString length] == 0 || [self.letterString isEqualToString:@"*"] || [self.letterString caseInsensitiveCompare:@"ALL"] == NSOrderedSame) {
         self.letterString = @"ALL";
         self.letterLabel.text = @"*";
@@ -57,23 +76,15 @@
         self.letterLabel.text = self.letterString;
     }
     
-    if ([self.genderString isEqual:@"👦"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:.8 green:.85 blue:1 alpha:1]];
-    } if ([self.genderString isEqual:@"👧"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:.8 blue:.85 alpha:1]];
-    } if ([self.genderString isEqual:@"👶"]) {
-        [self.view setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:1]];
-    }
-    
     UIScreenEdgePanGestureRecognizer *left = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(leftEdge:)];
     UIScreenEdgePanGestureRecognizer *right = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(rightEdge:)];
     left.edges = UIRectEdgeLeft;
     right.edges = UIRectEdgeRight;
     [self.view addGestureRecognizer:left];
-    [self.view addGestureRecognizer:right];}
+    [self.view addGestureRecognizer:right];
+}
 
 - (void)viewWillAppear:(BOOL)animated {
-    DBUser *currentUser = [DBUser currentUser];
     [self.names removeAllObjects];
     [self.genders removeAllObjects];
     
@@ -93,21 +104,13 @@
         [query whereKey:@"name" matchesRegex:[NSString stringWithFormat:@"%@.*", self.letterString]];
     }
     
-    if ([self.sortString isEqualToString:@"namesAtoZ"]) {
-        [query orderByAscending:@"name"];
-    } else if ([self.sortString isEqualToString:@"namesZtoA"]) {
-        [query orderByDescending:@"name"];
-    } else {
-        [query orderByAscending:@"name"]; // Fallback to name since rank doesn't exist
-    }
-    
-    // We fetch without limit in Firestore to ensure local filtering works correctly
-    // query.limit = self.limitNumber;
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
+            NSMutableArray *filtered = [NSMutableArray array];
             for (DBObject *object in objects) {
                 NSString *n = [object objectForKey:@"name"];
                 NSString *g = [object objectForKey:@"gender"];
+                if (!n) continue;
                 
                 BOOL genderMatch = YES;
                 if ([genderLetter isEqualToString:@"M"]) {
@@ -122,12 +125,39 @@
                 }
                 
                 if (genderMatch && letterMatch) {
-                    [self.names addObject:n];
-                    [self.genders addObject:g];
-                    if (self.names.count >= self.limitNumber) {
-                        break; // Apply limit locally
-                    }
+                    [filtered addObject:object];
                 }
+            }
+            
+            [filtered sortUsingComparator:^NSComparisonResult(DBObject *a, DBObject *b) {
+                if ([self.sortString isEqualToString:@"uncommon"]) {
+                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
+                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
+                    if (rankA != rankB) {
+                        return rankA > rankB ? NSOrderedAscending : NSOrderedDescending;
+                    }
+                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
+                } else if ([self.sortString isEqualToString:@"popular"]) {
+                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
+                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
+                    if (rankA == 0) rankA = 999999;
+                    if (rankB == 0) rankB = 999999;
+                    if (rankA != rankB) {
+                        return rankA < rankB ? NSOrderedAscending : NSOrderedDescending;
+                    }
+                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
+                } else if ([self.sortString isEqualToString:@"namesZtoA"]) {
+                    return [[b objectForKey:@"name"] compare:[a objectForKey:@"name"] options:NSCaseInsensitiveSearch];
+                } else { // namesAtoZ
+                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
+                }
+            }];
+            
+            NSInteger count = MIN((NSInteger)filtered.count, (NSInteger)self.limitNumber);
+            for (NSInteger i = 0; i < count; i++) {
+                DBObject *obj = filtered[i];
+                [self.names addObject:[obj objectForKey:@"name"]];
+                [self.genders addObject:[obj objectForKey:@"gender"]];
             }
         }
         [self.namesTable reloadData];
@@ -398,6 +428,13 @@
     self.genderLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.letterLabel.translatesAutoresizingMaskIntoConstraints = NO;
     
+    if (!self.genderImageView) {
+        self.genderImageView = [[UIImageView alloc] init];
+        self.genderImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.genderImageView.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:self.genderImageView];
+    }
+    
     // Find buttons
     UIButton *cancelBtn = nil, *saveBtn = nil, *homeBtn = nil, *shuffleBtn = nil;
     for (UIView *v in self.view.subviews) {
@@ -426,11 +463,13 @@
         [self.activityIndicator.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.activityIndicator.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
         
-        [self.genderLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-        [self.genderLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
-        
         [self.letterLabel.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30]
+        [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30],
+        
+        [self.genderImageView.centerYAnchor constraintEqualToAnchor:self.letterLabel.centerYAnchor],
+        [self.genderImageView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:-30],
+        [self.genderImageView.widthAnchor constraintEqualToConstant:36],
+        [self.genderImageView.heightAnchor constraintEqualToConstant:36]
     ]];
     
     if (homeBtn) {

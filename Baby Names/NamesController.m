@@ -171,6 +171,22 @@
                         return [db compare:da];
                     }
                     return NSOrderedSame;
+                } else if ([sortString isEqualToString:@"uncommon"]) {
+                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
+                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
+                    if (rankA != rankB) {
+                        return rankA > rankB ? NSOrderedAscending : NSOrderedDescending;
+                    }
+                    return [[a objectForKey:@"name"] caseInsensitiveCompare:[b objectForKey:@"name"]];
+                } else if ([sortString isEqualToString:@"popular"]) {
+                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
+                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
+                    if (rankA == 0) rankA = 999999;
+                    if (rankB == 0) rankB = 999999;
+                    if (rankA != rankB) {
+                        return rankA < rankB ? NSOrderedAscending : NSOrderedDescending;
+                    }
+                    return [[a objectForKey:@"name"] caseInsensitiveCompare:[b objectForKey:@"name"]];
                 } else if ([sortString isEqualToString:@"namesZtoA"]) {
                     return [[b objectForKey:@"name"] caseInsensitiveCompare:[a objectForKey:@"name"]];
                 } else {

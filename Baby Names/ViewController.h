@@ -18,4 +18,11 @@
 @property NSString *sortString;
 @property int limitNumber;
 
+- (void)setPopular;
+- (void)setUncommon;
+- (void)setNamesAtoZ;
+- (void)setNamesZtoA;
+- (void)setNewest;
+- (void)setOldest;
+
 @end

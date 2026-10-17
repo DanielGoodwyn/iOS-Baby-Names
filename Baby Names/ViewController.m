@@ -108,6 +108,12 @@
         playBtn.tintColor = [UIColor labelColor];
         playBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
     }
+    if (topBtn) {
+        [topBtn setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+        [topBtn setTitle:@"" forState:UIControlStateNormal];
+        topBtn.tintColor = [UIColor labelColor];
+        topBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
     
     // Top Bar (Profile, Notes)
     if (profileBtn && notesBtn) {
@@ -444,28 +450,31 @@
 
 - (IBAction)sort:(id)sender {
     UIAlertController * view = [UIAlertController alertControllerWithTitle:@"Sort" message:@"Select a sort order." preferredStyle:UIAlertControllerStyleActionSheet];
-    UIAlertAction* namesAtoZ = [UIAlertAction actionWithTitle:@"🔜 A-Z" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* namesAtoZ = [UIAlertAction actionWithTitle:@"A - Z" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setNamesAtoZ];
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
-    UIAlertAction* namesZtoA = [UIAlertAction actionWithTitle:@"🔙 Z-A" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* namesZtoA = [UIAlertAction actionWithTitle:@"Z - A" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setNamesZtoA];
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
-    UIAlertAction* popular = [UIAlertAction actionWithTitle:@"🔝 popular ▶️" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* popular = [UIAlertAction actionWithTitle:@"Popular" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setPopular];
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
-    UIAlertAction* uncommon = [UIAlertAction actionWithTitle:@"🔚 uncommon ▶️" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* uncommon = [UIAlertAction actionWithTitle:@"Uncommon" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setUncommon];
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
-    UIAlertAction* newest = [UIAlertAction actionWithTitle:@"🆕 newest 📝" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* newest = [UIAlertAction actionWithTitle:@"Newest" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setNewest];
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
-    UIAlertAction* oldest = [UIAlertAction actionWithTitle:@"👴 oldest 📝" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* oldest = [UIAlertAction actionWithTitle:@"Oldest" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [self setOldest];
+        [view dismissViewControllerAnimated:YES completion:nil];
+    }];
+    UIAlertAction* cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {
         [view dismissViewControllerAnimated:YES completion:nil];
     }];
     [view addAction:namesAtoZ];
@@ -474,6 +483,11 @@
     [view addAction:uncommon];
     [view addAction:newest];
     [view addAction:oldest];
+    [view addAction:cancel];
+    if (view.popoverPresentationController) {
+        view.popoverPresentationController.sourceView = self.sortButton;
+        view.popoverPresentationController.sourceRect = self.sortButton.bounds;
+    }
     [self presentViewController:view animated:YES completion:nil];
 }
 
@@ -511,7 +525,9 @@
 
 - (void)setPopular {
     self.sortString = @"popular";
-    [self.sortButton setTitle:@"🔝" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"popular" forKey:@"sort"];
     [currentUser saveInBackground];
@@ -519,7 +535,9 @@
 
 - (void)setUncommon {
     self.sortString = @"uncommon";
-    [self.sortButton setTitle:@"🔚" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"uncommon" forKey:@"sort"];
     [currentUser saveInBackground];
@@ -527,7 +545,9 @@
 
 - (void)setNamesAtoZ {
     self.sortString = @"namesAtoZ";
-    [self.sortButton setTitle:@"🔜" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"namesAtoZ" forKey:@"sort"];
     [currentUser saveInBackground];
@@ -535,7 +555,9 @@
 
 - (void)setNamesZtoA {
     self.sortString = @"namesZtoA";
-    [self.sortButton setTitle:@"🔙" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"namesZtoA" forKey:@"sort"];
     [currentUser saveInBackground];
@@ -543,7 +565,9 @@
 
 - (void)setNewest {
     self.sortString = @"newest";
-    [self.sortButton setTitle:@"🆕" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"newest" forKey:@"sort"];
     [currentUser saveInBackground];
@@ -551,7 +575,9 @@
 
 - (void)setOldest {
     self.sortString = @"oldest";
-    [self.sortButton setTitle:@"👴" forState:UIControlStateNormal];
+    [self.sortButton setTitle:@"" forState:UIControlStateNormal];
+    [self.sortButton setImage:[UIImage imageNamed:@"tool_sort"] forState:UIControlStateNormal];
+    self.sortButton.tintColor = [UIColor labelColor];
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"oldest" forKey:@"sort"];
     [currentUser saveInBackground];

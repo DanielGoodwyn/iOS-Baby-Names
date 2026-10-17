@@ -16,6 +16,21 @@ static DBUser *_currentUser = nil;
 }
 
 + (DBUser *)currentUser {
+#if TARGET_OS_SIMULATOR
+    if (!_currentUser) {
+        _currentUser = [[DBUser alloc] init];
+        _currentUser.objectId = @"sim_test_user_id";
+        _currentUser.email = @"test@babynames.com";
+        _currentUser.username = @"test";
+        [_currentUser setObject:@"test" forKey:@"username"];
+        [_currentUser setObject:@"test@babynames.com" forKey:@"email"];
+        [_currentUser setObject:@25 forKey:@"limit"];
+        [_currentUser setObject:@"ALL" forKey:@"letter"];
+        [_currentUser setObject:@"All" forKey:@"gender"];
+        [_currentUser setObject:@"popular" forKey:@"sort"];
+    }
+    return _currentUser;
+#else
     FIRUser *fbUser = [FIRAuth auth].currentUser;
     if (fbUser && !_currentUser) {
         _currentUser = [[DBUser alloc] init];
@@ -26,6 +41,7 @@ static DBUser *_currentUser = nil;
         _currentUser = nil;
     }
     return _currentUser;
+#endif
 }
 
 + (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(void (^)(DBUser *, NSError *))block {
