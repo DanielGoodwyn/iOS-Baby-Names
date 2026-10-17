@@ -17,32 +17,41 @@
     self.names = [[NSMutableArray alloc] init];
     self.genders = [[NSMutableArray alloc] init];
     NSArray *parsed = [_detailItem componentsSeparatedByString:@","];
-    self.genderString = parsed[0];
-    self.letterString = parsed[1];
-    self.limitNumber = [parsed[3] intValue];
+    if (parsed.count >= 2) {
+        self.genderString = parsed[0];
+        self.letterString = parsed[1];
+    }
+    if (parsed.count >= 4) {
+        self.limitNumber = [parsed[3] intValue];
+    }
     
     [self layoutProgrammatically];
     
     DBUser *currentUser = [DBUser currentUser];
 
-    self.genderString = [currentUser objectForKey:@"gender"];
-
-    self.letterString = [currentUser objectForKey:@"letter"];
+    if (self.genderString == nil || [self.genderString length] == 0) {
+        self.genderString = [currentUser objectForKey:@"gender"];
+    }
+    if (self.letterString == nil || [self.letterString length] == 0) {
+        self.letterString = [currentUser objectForKey:@"letter"];
+    }
+    if (self.limitNumber == 0) {
+        self.limitNumber = (int)[[currentUser objectForKey:@"limit"] integerValue];
+        if (self.limitNumber == 0) self.limitNumber = 25;
+    }
+    self.sortString = [currentUser objectForKey:@"sort"] ?: @"popular";
     
-    self.limitNumber = (int)[[currentUser objectForKey:@"limit"] integerValue];
-    
-    self.sortString = [currentUser objectForKey:@"sort"];
-    
-    if ([self.genderString isEqual:@"M"]) {
-        self.genderString =@"👦";
-    } else if ([self.genderString isEqual:@"F"]) {
-        self.genderString =@"👧";
+    if ([self.genderString isEqualToString:@"M"] || [self.genderString isEqualToString:@"👦"]) {
+        self.genderString = @"👦";
+    } else if ([self.genderString isEqualToString:@"F"] || [self.genderString isEqualToString:@"👧"]) {
+        self.genderString = @"👧";
     } else {
-        self.genderString =@"👶";
+        self.genderString = @"👶"; // Defaults to both
     }
         
     self.genderLabel.text = self.genderString;
-    if ([self.letterString isEqualToString:@"ALL"]) {
+    if (self.letterString == nil || [self.letterString length] == 0 || [self.letterString isEqualToString:@"*"] || [self.letterString caseInsensitiveCompare:@"ALL"] == NSOrderedSame) {
+        self.letterString = @"ALL";
         self.letterLabel.text = @"*";
     } else {
         self.letterLabel.text = self.letterString;
@@ -67,24 +76,20 @@
     DBUser *currentUser = [DBUser currentUser];
     [self.names removeAllObjects];
     [self.genders removeAllObjects];
-    // query to populate array
-    // https://parse.com/docs/ios_guide#queries/iOS
     
-    NSString *genderLetter;
-    if ([self.genderString isEqual:@"👦"]) {
-        genderLetter =@"M";
-    } if ([self.genderString isEqual:@"👧"]) {
-        genderLetter =@"F";
-    } if ([self.genderString isEqual:@"👶"]) {
-        genderLetter =@"All";
+    NSString *genderLetter = @"All";
+    if ([self.genderString isEqualToString:@"👦"] || [self.genderString isEqualToString:@"M"]) {
+        genderLetter = @"M";
+    } else if ([self.genderString isEqualToString:@"👧"] || [self.genderString isEqualToString:@"F"]) {
+        genderLetter = @"F";
+    } else {
+        genderLetter = @"All";
     }
     [self.activityIndicator startAnimating];
     DBQuery *query = [DBQuery queryWithClassName:@"Name"];
     
-    // We query by name prefix in Firestore (which uses the automatic single-field index).
-    // We filter by gender locally to avoid missing composite index errors.
-    
-    if (![self.letterString isEqualToString:@"ALL"]) {
+    BOOL hasLetterFilter = (self.letterString != nil && [self.letterString length] > 0 && ![self.letterString isEqualToString:@"ALL"] && ![self.letterString isEqualToString:@"*"]);
+    if (hasLetterFilter) {
         [query whereKey:@"name" matchesRegex:[NSString stringWithFormat:@"%@.*", self.letterString]];
     }
     
@@ -105,12 +110,14 @@
                 NSString *g = [object objectForKey:@"gender"];
                 
                 BOOL genderMatch = YES;
-                if (![genderLetter isEqualToString:@"All"]) {
-                    genderMatch = [g isEqualToString:genderLetter];
+                if ([genderLetter isEqualToString:@"M"]) {
+                    genderMatch = [g isEqualToString:@"M"];
+                } else if ([genderLetter isEqualToString:@"F"]) {
+                    genderMatch = [g isEqualToString:@"F"];
                 }
                 
                 BOOL letterMatch = YES;
-                if (![self.letterString isEqualToString:@"ALL"]) {
+                if (hasLetterFilter) {
                     letterMatch = [[n lowercaseString] hasPrefix:[self.letterString lowercaseString]];
                 }
                 

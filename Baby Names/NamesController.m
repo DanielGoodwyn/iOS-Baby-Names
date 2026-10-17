@@ -124,17 +124,13 @@
                 NSString *objName = [object objectForKey:@"name"];
                 if (!objName) continue;
                 
-                BOOL genderMatch = [genderString isEqualToString:@"All"] || (objGender && [objGender isEqualToString:genderString]);
-                if (gender != nil) {
-                    if ([gender isEqualToString:@"F"]) {
-                        genderMatch = (objGender && [objGender isEqualToString:@"F"]);
-                    } else if ([gender isEqualToString:@"M"]) {
-                        genderMatch = (objGender && [objGender isEqualToString:@"M"]);
-                    }
-                }
+                NSString *effectiveGender = (gender != nil) ? gender : genderString;
+                BOOL isM = [effectiveGender isEqualToString:@"M"] || [effectiveGender isEqualToString:@"👦"];
+                BOOL isF = [effectiveGender isEqualToString:@"F"] || [effectiveGender isEqualToString:@"👧"];
+                BOOL genderMatch = (!isM && !isF) || (isM && [objGender isEqualToString:@"M"]) || (isF && [objGender isEqualToString:@"F"]);
                 
                 BOOL letterMatch = YES;
-                if (![letterString isEqualToString:@"ALL"]) {
+                if (letterString != nil && [letterString length] > 0 && ![letterString isEqualToString:@"ALL"] && ![letterString isEqualToString:@"*"]) {
                     letterMatch = [[objName lowercaseString] hasPrefix:[letterString lowercaseString]];
                 }
                 

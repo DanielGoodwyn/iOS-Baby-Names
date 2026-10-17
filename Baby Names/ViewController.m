@@ -208,10 +208,19 @@
     }
     
     self.genderString = [currentUser objectForKey:@"gender"];
+    if (self.genderString == nil || [self.genderString length] == 0) {
+        self.genderString = @"All";
+    }
     
     self.letterString = [currentUser objectForKey:@"letter"];
+    if (self.letterString == nil || [self.letterString length] == 0 || [self.letterString isEqualToString:@"*"]) {
+        self.letterString = @"ALL";
+    }
     
     self.limitNumber = (int)[[currentUser objectForKey:@"limit"] integerValue];
+    if (self.limitNumber == 0) {
+        self.limitNumber = 25;
+    }
     
     self.sortString = [currentUser objectForKey:@"sort"];
     
@@ -228,20 +237,23 @@
         [self setPopular];
     }
     
+    self.alphabetIndex = 0;
     for (int i = 0; i<[self.alphabet count]; i++) {
-        if ([self.letterString isEqual: self.alphabet[i]]) {
+        if ([self.letterString caseInsensitiveCompare:self.alphabet[i]] == NSOrderedSame) {
             self.alphabetIndex = i;
+            break;
         }
     }
     
     [self.alphabetPicker selectRow:self.alphabetIndex inComponent:0 animated:YES];
     self.limitTextField.text = [NSString stringWithFormat: @"%i", self.limitNumber];
     
-    if ([self.genderString isEqualToString:@"M"]) {
+    if ([self.genderString isEqualToString:@"M"] || [self.genderString isEqualToString:@"👦"]) {
         [self.view setBackgroundColor:[self boyBackgroundColor]];
-    } else if ([self.genderString isEqualToString:@"F"]) {
+    } else if ([self.genderString isEqualToString:@"F"] || [self.genderString isEqualToString:@"👧"]) {
         [self.view setBackgroundColor:[self girlBackgroundColor]];
     } else {
+        self.genderString = @"All";
         [self.view setBackgroundColor:[self allBackgroundColor]];
     }
 
@@ -349,14 +361,21 @@
     [segue.destinationViewController setModalPresentationStyle:UIModalPresentationFullScreen];
     [self lastPage];
     
-    NSString *genderLetter;
-    genderLetter = self.genderString;
-    if ([self.genderString isEqual:@"👦"]) {
-        genderLetter =@"M";
-    } if ([self.genderString isEqual:@"👧"]) {
-        genderLetter =@"F";
-    } if ([self.genderString isEqual:@"👶"]) {
-        genderLetter =@"All";
+    NSString *genderLetter = @"All";
+    if ([self.genderString isEqualToString:@"👦"] || [self.genderString isEqualToString:@"M"]) {
+        genderLetter = @"M";
+    } else if ([self.genderString isEqualToString:@"👧"] || [self.genderString isEqualToString:@"F"]) {
+        genderLetter = @"F";
+    } else {
+        genderLetter = @"All";
+    }
+    
+    NSString *selectedLetter = @"ALL";
+    if (self.alphabetIndex < self.alphabet.count) {
+        selectedLetter = self.alphabet[self.alphabetIndex];
+    }
+    if (selectedLetter == nil || [selectedLetter length] == 0 || [selectedLetter isEqualToString:@"*"]) {
+        selectedLetter = @"ALL";
     }
     
     if (self.limitNumber > 200){
@@ -367,8 +386,7 @@
     }
 
     if ([[segue identifier] isEqualToString:@"name"]) {
-        NSObject *myString = [[NSObject alloc] init];
-        myString = [NSString stringWithFormat:@"%@,%@,👶,%i",genderLetter, self.alphabet[self.alphabetIndex], self.limitNumber];
+        NSString *myString = [NSString stringWithFormat:@"%@,%@,👶,%i", genderLetter, selectedLetter, self.limitNumber];
         [[segue destinationViewController] setDetailItem:myString];
     }
 }
