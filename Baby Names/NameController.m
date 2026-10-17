@@ -255,8 +255,10 @@
         // save name
         // https://parse.com/docs/ios_guide#objects-saving/iOS
         
+        DBUser *currentUser = [DBUser currentUser];
         DBQuery *query = [DBQuery queryWithClassName:@"names"];
         [query whereKey:@"name" equalTo:self.names[indexPath.row]];
+        [query whereKey:@"userId" equalTo:[currentUser objectId]];
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (objects.count>0){
                 self.nameChosen = @"YES";
@@ -264,8 +266,6 @@
                 self.nameChosen = @"NO";
             }
             if ([self.nameChosen isEqualToString:@"NO"]) {
-                DBUser *currentUser = [DBUser currentUser];
-                
                 DBObject *object = [DBObject objectWithClassName:@"names"];
                 object[@"name"] = self.names[indexPath.row];
                 object[@"gender"] = genderLetter;

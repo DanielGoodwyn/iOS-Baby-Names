@@ -64,4 +64,27 @@
         }
     }];
 }
+
+- (id)addSnapshotListenerWithBlock:(void (^)(NSArray *, NSError *))block {
+    return [self.query addSnapshotListener:^(FIRQuerySnapshot * _Nullable snapshot, NSError * _Nullable error) {
+        if (error) {
+            if (block) block(nil, error);
+        } else {
+            NSMutableArray *results = [NSMutableArray array];
+            for (FIRDocumentSnapshot *doc in snapshot.documents) {
+                DBObject *obj = [DBObject objectWithClassName:self.className];
+                obj.objectId = doc.documentID;
+                [obj.data addEntriesFromDictionary:doc.data];
+                [results addObject:obj];
+            }
+            if (block) block(results, nil);
+        }
+    }];
+}
+
+- (void)removeListener:(id)listener {
+    if ([listener respondsToSelector:@selector(remove)]) {
+        [listener remove];
+    }
+}
 @end

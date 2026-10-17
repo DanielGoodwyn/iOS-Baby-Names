@@ -8,6 +8,7 @@
 #import "ViewController.h"
 #import "NameController.h"
 #import "InfoController.h"
+#import "NamesController.h"
 #import "Database.h"
 
 @interface Baby_NamesTests : XCTestCase
@@ -126,6 +127,38 @@
     XCTAssertTrue([nc.names[0] isEqualToString:@"Kevin"], @"Most popular K boy name should be Kevin, got %@", nc.names[0]);
     XCTAssertTrue([nc.names containsObject:@"Kason"], @"K boy names should include Kason");
     XCTAssertFalse([nc.names[0] isEqualToString:@"Kade"], @"Kade is rank 418, should not be first!");
+}
+
+- (void)testNamesControllerGenderFilterSelection {
+    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    NamesController *namesVC = [sb instantiateViewControllerWithIdentifier:@"NamesController"];
+    [namesVC loadViewIfNeeded];
+    
+    XCTAssertNotNil(namesVC.boyButton, @"Boy button should exist on favorites page");
+    XCTAssertNotNil(namesVC.bothButton, @"Both button should exist on favorites page");
+    XCTAssertNotNil(namesVC.girlButton, @"Girl button should exist on favorites page");
+    XCTAssertNotNil(namesVC.genderStackView, @"Gender stack view should exist");
+    
+    // Test selecting Boy
+    [namesVC filterBoy:nil];
+    XCTAssertEqualObjects(namesVC.genderString, @"M", @"Selecting boy should set genderString to M");
+    XCTAssertEqualWithAccuracy(namesVC.boyButton.alpha, 1.0, 0.01, @"Boy button alpha should be 1.0 when active");
+    XCTAssertEqualWithAccuracy(namesVC.bothButton.alpha, 0.35, 0.01, @"Both button alpha should be 0.35 when inactive");
+    XCTAssertEqualWithAccuracy(namesVC.girlButton.alpha, 0.35, 0.01, @"Girl button alpha should be 0.35 when inactive");
+    
+    // Test selecting Girl
+    [namesVC filterGirl:nil];
+    XCTAssertEqualObjects(namesVC.genderString, @"F", @"Selecting girl should set genderString to F");
+    XCTAssertEqualWithAccuracy(namesVC.girlButton.alpha, 1.0, 0.01, @"Girl button alpha should be 1.0 when active");
+    XCTAssertEqualWithAccuracy(namesVC.bothButton.alpha, 0.35, 0.01, @"Both button alpha should be 0.35 when inactive");
+    XCTAssertEqualWithAccuracy(namesVC.boyButton.alpha, 0.35, 0.01, @"Boy button alpha should be 0.35 when inactive");
+    
+    // Test selecting Both
+    [namesVC filterBoth:nil];
+    XCTAssertEqualObjects(namesVC.genderString, @"All", @"Selecting both should set genderString to All");
+    XCTAssertEqualWithAccuracy(namesVC.bothButton.alpha, 1.0, 0.01, @"Both button alpha should be 1.0 when active");
+    XCTAssertEqualWithAccuracy(namesVC.boyButton.alpha, 0.35, 0.01, @"Boy button alpha should be 0.35 when inactive");
+    XCTAssertEqualWithAccuracy(namesVC.girlButton.alpha, 0.35, 0.01, @"Girl button alpha should be 0.35 when inactive");
 }
 
 @end

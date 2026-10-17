@@ -13,7 +13,17 @@
 @property NSMutableArray *names;
 @property NSMutableArray *genders;
 @property NSString *genderLetter;
+@property NSString *genderString;
+
+@property (strong, nonatomic) UIButton *boyButton;
+@property (strong, nonatomic) UIButton *bothButton;
+@property (strong, nonatomic) UIButton *girlButton;
+@property (strong, nonatomic) UIStackView *genderStackView;
 
 @property int index;
+
+- (IBAction)filterBoy:(id)sender;
+- (IBAction)filterBoth:(id)sender;
+- (IBAction)filterGirl:(id)sender;
 
 @end

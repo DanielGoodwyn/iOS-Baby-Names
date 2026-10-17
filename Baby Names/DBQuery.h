@@ -12,4 +12,6 @@
 - (void)orderByDescending:(NSString *)key;
 @property (nonatomic, assign) NSInteger limit;
 - (void)findObjectsInBackgroundWithBlock:(void (^)(NSArray *objects, NSError *error))block;
+- (id)addSnapshotListenerWithBlock:(void (^)(NSArray *objects, NSError *error))block;
+- (void)removeListener:(id)listener;
 @end
