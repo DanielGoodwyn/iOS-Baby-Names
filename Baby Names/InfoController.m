@@ -78,9 +78,22 @@
             UIButton *btn = (UIButton *)v;
             btn.translatesAutoresizingMaskIntoConstraints = NO;
             NSString *title = [btn titleForState:UIControlStateNormal];
-            if ([title isEqualToString:@"◀️"]) backBtn = btn;
-            else if ([title isEqualToString:@"💾"]) saveBtn = btn;
+            if ([title isEqualToString:@"◀️"] || btn.tag == 101 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_back"]]) backBtn = btn;
+            else if ([title isEqualToString:@"💾"] || btn.tag == 102 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_save"]]) saveBtn = btn;
         }
+    }
+    
+    if (backBtn) {
+        [backBtn setImage:[UIImage imageNamed:@"tool_back"] forState:UIControlStateNormal];
+        [backBtn setTitle:@"" forState:UIControlStateNormal];
+        backBtn.tintColor = [UIColor labelColor];
+        backBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (saveBtn) {
+        [saveBtn setImage:[UIImage imageNamed:@"tool_save"] forState:UIControlStateNormal];
+        [saveBtn setTitle:@"" forState:UIControlStateNormal];
+        saveBtn.tintColor = [UIColor labelColor];
+        saveBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
     }
     
     [NSLayoutConstraint activateConstraints:@[
@@ -103,14 +116,18 @@
     if (backBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [backBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-            [backBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20]
+            [backBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            [backBtn.widthAnchor constraintEqualToConstant:44],
+            [backBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
     
     if (saveBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [saveBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-            [saveBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+            [saveBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
+            [saveBtn.widthAnchor constraintEqualToConstant:44],
+            [saveBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
 }

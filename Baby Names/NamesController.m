@@ -40,13 +40,30 @@
         }
     }
     
+    if (homeBtn) {
+        [homeBtn setImage:[UIImage imageNamed:@"tool_back"] forState:UIControlStateNormal];
+        [homeBtn setTitle:@"" forState:UIControlStateNormal];
+        homeBtn.tintColor = [UIColor labelColor];
+        homeBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (shuffleBtn) {
+        [shuffleBtn setImage:[UIImage imageNamed:@"tool_shuffle"] forState:UIControlStateNormal];
+        [shuffleBtn setTitle:@"" forState:UIControlStateNormal];
+        shuffleBtn.tintColor = [UIColor labelColor];
+        shuffleBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    
     if (homeBtn && shuffleBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [homeBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
             [homeBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            [homeBtn.widthAnchor constraintEqualToConstant:44],
+            [homeBtn.heightAnchor constraintEqualToConstant:44],
             
             [shuffleBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-            [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+            [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
+            [shuffleBtn.widthAnchor constraintEqualToConstant:44],
+            [shuffleBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
     
@@ -282,7 +299,10 @@
     label.textColor = [UIColor labelColor];
     label.text = [self.names objectAtIndex:indexPath.row];
     label = (UILabel *)[cell viewWithTag:1];
-    label.text = genderEmoji;
+    label.text = @"";
+    NSString *imageName = [genderEmoji isEqualToString:@"👧"] ? @"face_girl" : @"face_boy";
+    cell.imageView.image = [UIImage imageNamed:imageName];
+    cell.imageView.contentMode = UIViewContentModeScaleAspectFit;
 
     return cell;
 }

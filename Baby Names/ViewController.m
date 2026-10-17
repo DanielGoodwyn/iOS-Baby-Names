@@ -58,10 +58,10 @@
             UIButton *btn = (UIButton *)v;
             btn.translatesAutoresizingMaskIntoConstraints = NO; // Enable auto layout
             NSString *title = [btn titleForState:UIControlStateNormal];
-            if ([title isEqualToString:@"👦"]) boyBtn = btn;
-            else if ([title isEqualToString:@"👶"]) bothBtn = btn;
-            else if ([title isEqualToString:@"👧"]) girlBtn = btn;
-            else if ([title isEqualToString:@"TOP"]) topBtn = btn;
+            if ([title isEqualToString:@"👦"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_boy"]]) boyBtn = btn;
+            else if ([title isEqualToString:@"👶"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_baby"]]) bothBtn = btn;
+            else if ([title isEqualToString:@"👧"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_girl"]]) girlBtn = btn;
+            else if ([title isEqualToString:@"TOP"] || btn == self.sortButton) topBtn = btn;
             else {
                 // Determine by frame position to identify remaining buttons
                 if (btn.frame.origin.y < 100) {
@@ -74,14 +74,53 @@
         }
     }
     
+    // Configure buttons with new assets
+    if (boyBtn) {
+        [boyBtn setImage:[UIImage imageNamed:@"face_boy"] forState:UIControlStateNormal];
+        [boyBtn setTitle:@"" forState:UIControlStateNormal];
+        boyBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (bothBtn) {
+        [bothBtn setImage:[UIImage imageNamed:@"face_baby"] forState:UIControlStateNormal];
+        [bothBtn setTitle:@"" forState:UIControlStateNormal];
+        bothBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (girlBtn) {
+        [girlBtn setImage:[UIImage imageNamed:@"face_girl"] forState:UIControlStateNormal];
+        [girlBtn setTitle:@"" forState:UIControlStateNormal];
+        girlBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (profileBtn) {
+        [profileBtn setImage:[UIImage imageNamed:@"tool_account"] forState:UIControlStateNormal];
+        [profileBtn setTitle:@"" forState:UIControlStateNormal];
+        profileBtn.tintColor = [UIColor labelColor];
+        profileBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (notesBtn) {
+        [notesBtn setImage:[UIImage imageNamed:@"tool_star"] forState:UIControlStateNormal];
+        [notesBtn setTitle:@"" forState:UIControlStateNormal];
+        notesBtn.tintColor = [UIColor labelColor];
+        notesBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (playBtn) {
+        [playBtn setImage:[UIImage imageNamed:@"tool_next"] forState:UIControlStateNormal];
+        [playBtn setTitle:@"" forState:UIControlStateNormal];
+        playBtn.tintColor = [UIColor labelColor];
+        playBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    
     // Top Bar (Profile, Notes)
     if (profileBtn && notesBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [profileBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
             [profileBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            [profileBtn.widthAnchor constraintEqualToConstant:44],
+            [profileBtn.heightAnchor constraintEqualToConstant:44],
             
             [notesBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-            [notesBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+            [notesBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
+            [notesBtn.widthAnchor constraintEqualToConstant:44],
+            [notesBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
     
@@ -97,6 +136,12 @@
         [NSLayoutConstraint activateConstraints:@[
             [emojiStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
             [emojiStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-40],
+            [boyBtn.widthAnchor constraintEqualToConstant:96],
+            [boyBtn.heightAnchor constraintEqualToConstant:96],
+            [bothBtn.widthAnchor constraintEqualToConstant:96],
+            [bothBtn.heightAnchor constraintEqualToConstant:96],
+            [girlBtn.widthAnchor constraintEqualToConstant:96],
+            [girlBtn.heightAnchor constraintEqualToConstant:96]
         ]];
     }
     
@@ -108,12 +153,16 @@
         [NSLayoutConstraint activateConstraints:@[
             [topBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
             [topBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            [topBtn.widthAnchor constraintEqualToConstant:44],
+            [topBtn.heightAnchor constraintEqualToConstant:44],
             
             [self.limitTextField.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
             [self.limitTextField.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
             
             [playBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
-            [playBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+            [playBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
+            [playBtn.widthAnchor constraintEqualToConstant:44],
+            [playBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
     

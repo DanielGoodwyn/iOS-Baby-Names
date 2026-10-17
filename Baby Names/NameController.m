@@ -350,6 +350,15 @@
             }];
         }
     }
+    for (UIView *v in cell.contentView.subviews) {
+        if ([v isKindOfClass:[UIButton class]]) {
+            UIButton *sBtn = (UIButton *)v;
+            [sBtn setImage:[UIImage imageNamed:@"tool_save"] forState:UIControlStateNormal];
+            [sBtn setTitle:@"" forState:UIControlStateNormal];
+            sBtn.tintColor = [UIColor labelColor];
+            sBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        }
+    }
     return cell;
 }
 
@@ -424,13 +433,30 @@
         [self.letterLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:30]
     ]];
     
+    if (homeBtn) {
+        [homeBtn setImage:[UIImage imageNamed:@"tool_back"] forState:UIControlStateNormal];
+        [homeBtn setTitle:@"" forState:UIControlStateNormal];
+        homeBtn.tintColor = [UIColor labelColor];
+        homeBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    if (shuffleBtn) {
+        [shuffleBtn setImage:[UIImage imageNamed:@"tool_shuffle"] forState:UIControlStateNormal];
+        [shuffleBtn setTitle:@"" forState:UIControlStateNormal];
+        shuffleBtn.tintColor = [UIColor labelColor];
+        shuffleBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    
     if (homeBtn && shuffleBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [homeBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
             [homeBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+            [homeBtn.widthAnchor constraintEqualToConstant:44],
+            [homeBtn.heightAnchor constraintEqualToConstant:44],
             
             [shuffleBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
-            [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20]
+            [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
+            [shuffleBtn.widthAnchor constraintEqualToConstant:44],
+            [shuffleBtn.heightAnchor constraintEqualToConstant:44]
         ]];
     }
 
