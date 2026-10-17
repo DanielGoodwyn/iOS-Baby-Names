@@ -58,10 +58,10 @@
             UIButton *btn = (UIButton *)v;
             btn.translatesAutoresizingMaskIntoConstraints = NO; // Enable auto layout
             NSString *title = [btn titleForState:UIControlStateNormal];
-            if ([title isEqualToString:@"👦"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_boy"]]) boyBtn = btn;
-            else if ([title isEqualToString:@"👶"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_baby"]]) bothBtn = btn;
-            else if ([title isEqualToString:@"👧"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_girl"]]) girlBtn = btn;
-            else if ([title isEqualToString:@"TOP"] || btn == self.sortButton) topBtn = btn;
+            if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchUpInside] containsObject:@"boy:"] || [title isEqualToString:@"👦"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_boy"]]) boyBtn = btn;
+            else if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchUpInside] containsObject:@"either:"] || [title isEqualToString:@"👶"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_baby"]]) bothBtn = btn;
+            else if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchUpInside] containsObject:@"girl:"] || [title isEqualToString:@"👧"] || [btn.currentImage isEqual:[UIImage imageNamed:@"face_girl"]]) girlBtn = btn;
+            else if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchDown] containsObject:@"sort:"] || [title isEqualToString:@"TOP"] || btn == self.sortButton) topBtn = btn;
             else {
                 // Determine by frame position to identify remaining buttons
                 if (btn.frame.origin.y < 100) {
@@ -441,7 +441,7 @@
     }
 
     if ([[segue identifier] isEqualToString:@"name"]) {
-        NSString *myString = [NSString stringWithFormat:@"%@,%@,👶,%i", genderLetter, selectedLetter, self.limitNumber];
+        NSString *myString = [NSString stringWithFormat:@"%@,%@,,%i", genderLetter, selectedLetter, self.limitNumber];
         [[segue destinationViewController] setDetailItem:myString];
     }
 }

@@ -161,4 +161,50 @@
     XCTAssertEqualWithAccuracy(namesVC.girlButton.alpha, 0.35, 0.01, @"Girl button alpha should be 0.35 when inactive");
 }
 
+- (void)assertNoEmojisInViewHierarchy:(UIView *)rootView {
+    NSArray *emojis = @[@"👦", @"👧", @"👶", @"👤", @"📝", @"▶️", @"🏡", @"🔀", @"💾", @"◀️", @"❤️", @"✖️"];
+    NSMutableArray *viewsToVisit = [NSMutableArray arrayWithObject:rootView];
+    while (viewsToVisit.count > 0) {
+        UIView *v = viewsToVisit.firstObject;
+        [viewsToVisit removeObjectAtIndex:0];
+        if ([v isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)v;
+            NSString *title = [btn titleForState:UIControlStateNormal];
+            for (NSString *emoji in emojis) {
+                if (title && [title containsString:emoji]) {
+                    XCTFail(@"Found emoji '%@' in button title '%@'", emoji, title);
+                }
+            }
+        } else if ([v isKindOfClass:[UILabel class]]) {
+            UILabel *lbl = (UILabel *)v;
+            NSString *text = lbl.text;
+            for (NSString *emoji in emojis) {
+                if (text && [text containsString:emoji]) {
+                    XCTFail(@"Found emoji '%@' in label text '%@'", emoji, text);
+                }
+            }
+        }
+        [viewsToVisit addObjectsFromArray:v.subviews];
+    }
+}
+
+- (void)testNoEmojiFlashesOnInitialInstantiation {
+    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    UIViewController *vc = [sb instantiateInitialViewController];
+    [vc loadViewIfNeeded];
+    [self assertNoEmojisInViewHierarchy:vc.view];
+    
+    UIViewController *namesVC = [sb instantiateViewControllerWithIdentifier:@"NamesController"];
+    [namesVC loadViewIfNeeded];
+    [self assertNoEmojisInViewHierarchy:namesVC.view];
+    
+    UIViewController *nameVC = [sb instantiateViewControllerWithIdentifier:@"NameController"];
+    [nameVC loadViewIfNeeded];
+    [self assertNoEmojisInViewHierarchy:nameVC.view];
+    
+    UIViewController *infoVC = [sb instantiateViewControllerWithIdentifier:@"InfoController"];
+    [infoVC loadViewIfNeeded];
+    [self assertNoEmojisInViewHierarchy:infoVC.view];
+}
+
 @end

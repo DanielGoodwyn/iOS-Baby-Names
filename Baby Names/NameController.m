@@ -49,6 +49,7 @@
         
     self.genderLabel.text = @"";
     self.genderLabel.hidden = YES;
+    self.name.text = @"";
     
     if (!self.genderImageView) {
         self.genderImageView = [[UIImageView alloc] init];
@@ -444,10 +445,9 @@
             NSString *title = [btn titleForState:UIControlStateNormal];
             if ([title isEqualToString:@"✖️"]) cancelBtn = btn;
             else if ([title isEqualToString:@"❤️"]) saveBtn = btn;
-            else if (btn.frame.origin.y < 100) {
-                if (btn.frame.origin.x < 150) homeBtn = btn;
-                else shuffleBtn = btn;
-            }
+            else if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchDown] containsObject:@"random:"]) shuffleBtn = btn;
+            else if ([btn.currentImage isEqual:[UIImage imageNamed:@"tool_shuffle"]] || btn.frame.origin.x > 300) shuffleBtn = btn;
+            else if ([btn.currentImage isEqual:[UIImage imageNamed:@"tool_back"]] || btn.frame.origin.x < 150) homeBtn = btn;
         }
     }
     

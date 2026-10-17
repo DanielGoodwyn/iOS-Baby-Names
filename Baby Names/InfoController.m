@@ -14,6 +14,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.nameChosen = @"NO";
+    self.nameLabel.text = @"";
+    self.letterLabel.text = @"";
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -88,8 +90,8 @@
             UIButton *btn = (UIButton *)v;
             btn.translatesAutoresizingMaskIntoConstraints = NO;
             NSString *title = [btn titleForState:UIControlStateNormal];
-            if ([title isEqualToString:@"◀️"] || btn.tag == 101 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_back"]]) backBtn = btn;
-            else if ([title isEqualToString:@"💾"] || btn.tag == 102 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_save"]]) saveBtn = btn;
+            if ([title isEqualToString:@"◀️"] || btn.tag == 101 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_back"]] || [[btn actionsForTarget:self forControlEvent:UIControlEventTouchUpInside] containsObject:@"back:"] || btn.frame.origin.x < 150) backBtn = btn;
+            else if ([title isEqualToString:@"💾"] || btn.tag == 102 || [btn.currentImage isEqual:[UIImage imageNamed:@"tool_save"]] || [[btn actionsForTarget:self forControlEvent:UIControlEventTouchDown] containsObject:@"save:"] || btn.frame.origin.x > 300) saveBtn = btn;
         }
     }
     

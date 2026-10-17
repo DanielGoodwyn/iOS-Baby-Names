@@ -13,6 +13,7 @@
     self.names = [[NSMutableArray alloc] init];
     self.genders = [[NSMutableArray alloc] init];
     self.rawFavorites = @[];
+    self.name.text = @"";
     
     self.boyButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.boyButton setImage:[UIImage imageNamed:@"face_boy"] forState:UIControlStateNormal];
@@ -59,9 +60,12 @@
             UIButton *btn = (UIButton *)v;
             if (btn == self.boyButton || btn == self.bothButton || btn == self.girlButton) continue;
             btn.translatesAutoresizingMaskIntoConstraints = NO;
-            if (btn.frame.origin.y < 100) {
-                if (btn.frame.origin.x < 150) homeBtn = btn;
-                else shuffleBtn = btn;
+            if ([[btn actionsForTarget:self forControlEvent:UIControlEventTouchDown] containsObject:@"random:"]) {
+                shuffleBtn = btn;
+            } else if ([btn.currentImage isEqual:[UIImage imageNamed:@"tool_shuffle"]] || btn.frame.origin.x > 300) {
+                shuffleBtn = btn;
+            } else if ([btn.currentImage isEqual:[UIImage imageNamed:@"tool_back"]] || btn.frame.origin.x < 150) {
+                homeBtn = btn;
             }
         }
     }
