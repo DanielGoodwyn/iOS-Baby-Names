@@ -151,24 +151,36 @@
         ]];
     }
     
-    // Bottom Bar (TOP, limit textfield, Play)
-    if (topBtn && playBtn && self.limitTextField) {
+    // Bottom Bar (Sort, Search, Play) - Balanced 1/3, 1/3, 1/3 layout
+    if (topBtn && playBtn) {
+        if (!self.searchButton) {
+            self.searchButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [self.searchButton setImage:[UIImage imageNamed:@"tool_search"] forState:UIControlStateNormal];
+            self.searchButton.tintColor = [UIColor labelColor];
+            self.searchButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+            [self.searchButton addTarget:self action:@selector(openSearchFilter:) forControlEvents:UIControlEventTouchUpInside];
+            self.searchButton.translatesAutoresizingMaskIntoConstraints = NO;
+            [self.view addSubview:self.searchButton];
+        }
+        
+        self.limitTextField.hidden = YES;
         self.limitTextField.translatesAutoresizingMaskIntoConstraints = NO;
-        self.limitTextField.textColor = [UIColor labelColor];
         
         [NSLayoutConstraint activateConstraints:@[
             [topBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
-            [topBtn.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
             [topBtn.widthAnchor constraintEqualToConstant:44],
             [topBtn.heightAnchor constraintEqualToConstant:44],
+            [NSLayoutConstraint constraintWithItem:topBtn attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTrailing multiplier:1.0/6.0 constant:0],
             
-            [self.limitTextField.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
-            [self.limitTextField.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+            [self.searchButton.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
+            [self.searchButton.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+            [self.searchButton.widthAnchor constraintEqualToConstant:44],
+            [self.searchButton.heightAnchor constraintEqualToConstant:44],
             
             [playBtn.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-20],
-            [playBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
             [playBtn.widthAnchor constraintEqualToConstant:44],
-            [playBtn.heightAnchor constraintEqualToConstant:44]
+            [playBtn.heightAnchor constraintEqualToConstant:44],
+            [NSLayoutConstraint constraintWithItem:playBtn attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTrailing multiplier:5.0/6.0 constant:0]
         ]];
     }
     
@@ -581,6 +593,21 @@
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"oldest" forKey:@"sort"];
     [currentUser saveInBackground];
+}
+
+#pragma mark - Search & Filter
+
+- (IBAction)openSearchFilter:(id)sender {
+    SearchFilterViewController *sfVC = [[SearchFilterViewController alloc] init];
+    sfVC.currentLimit = self.limitNumber > 0 ? self.limitNumber : 25;
+    sfVC.delegate = self;
+    sfVC.modalPresentationStyle = UIModalPresentationPageSheet;
+    [self presentViewController:sfVC animated:YES completion:nil];
+}
+
+- (void)searchFilterDidUpdateLimit:(NSInteger)newLimit {
+    self.limitNumber = (int)newLimit;
+    self.limitTextField.text = [NSString stringWithFormat:@"%i", self.limitNumber];
 }
 
 @end

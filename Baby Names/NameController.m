@@ -1,5 +1,6 @@
 
 #import "NameController.h"
+#import "NamesDatabase.h"
 
 @interface NameController ()
 
@@ -98,80 +99,30 @@
         genderLetter = @"All";
     }
     [self.activityIndicator startAnimating];
-    DBQuery *query = [DBQuery queryWithClassName:@"Name"];
     
-    BOOL hasLetterFilter = (self.letterString != nil && [self.letterString length] > 0 && ![self.letterString isEqualToString:@"ALL"] && ![self.letterString isEqualToString:@"*"]);
-    if (hasLetterFilter) {
-        [query whereKey:@"name" matchesRegex:[NSString stringWithFormat:@"%@.*", self.letterString]];
+    NSArray<NSDictionary *> *items = [[NamesDatabase sharedDatabase] namesForGender:genderLetter
+                                                                             letter:self.letterString
+                                                                               sort:self.sortString
+                                                                              limit:self.limitNumber];
+    for (NSDictionary *item in items) {
+        NSString *n = item[@"name"];
+        NSString *g = item[@"gender"];
+        if (n && g) {
+            [self.names addObject:n];
+            [self.genders addObject:g];
+        }
     }
     
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            NSMutableArray *filtered = [NSMutableArray array];
-            for (DBObject *object in objects) {
-                NSString *n = [object objectForKey:@"name"];
-                NSString *g = [object objectForKey:@"gender"];
-                if (!n) continue;
-                
-                BOOL genderMatch = YES;
-                if ([genderLetter isEqualToString:@"M"]) {
-                    genderMatch = [g isEqualToString:@"M"];
-                } else if ([genderLetter isEqualToString:@"F"]) {
-                    genderMatch = [g isEqualToString:@"F"];
-                }
-                
-                BOOL letterMatch = YES;
-                if (hasLetterFilter) {
-                    letterMatch = [[n lowercaseString] hasPrefix:[self.letterString lowercaseString]];
-                }
-                
-                if (genderMatch && letterMatch) {
-                    [filtered addObject:object];
-                }
-            }
-            
-            [filtered sortUsingComparator:^NSComparisonResult(DBObject *a, DBObject *b) {
-                if ([self.sortString isEqualToString:@"uncommon"]) {
-                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
-                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
-                    if (rankA != rankB) {
-                        return rankA > rankB ? NSOrderedAscending : NSOrderedDescending;
-                    }
-                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
-                } else if ([self.sortString isEqualToString:@"popular"]) {
-                    NSInteger rankA = [[a objectForKey:@"rank"] integerValue];
-                    NSInteger rankB = [[b objectForKey:@"rank"] integerValue];
-                    if (rankA == 0) rankA = 999999;
-                    if (rankB == 0) rankB = 999999;
-                    if (rankA != rankB) {
-                        return rankA < rankB ? NSOrderedAscending : NSOrderedDescending;
-                    }
-                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
-                } else if ([self.sortString isEqualToString:@"namesZtoA"]) {
-                    return [[b objectForKey:@"name"] compare:[a objectForKey:@"name"] options:NSCaseInsensitiveSearch];
-                } else { // namesAtoZ
-                    return [[a objectForKey:@"name"] compare:[b objectForKey:@"name"] options:NSCaseInsensitiveSearch];
-                }
-            }];
-            
-            NSInteger count = MIN((NSInteger)filtered.count, (NSInteger)self.limitNumber);
-            for (NSInteger i = 0; i < count; i++) {
-                DBObject *obj = filtered[i];
-                [self.names addObject:[obj objectForKey:@"name"]];
-                [self.genders addObject:[obj objectForKey:@"gender"]];
-            }
-        }
-        [self.namesTable reloadData];
-        [self setRandomName];
-        [self.activityIndicator stopAnimating];
-        if (self.names.count > 0 && self.index < self.names.count) {
-            [self.namesTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.index inSection:0] animated:YES scrollPosition:UITableViewScrollPositionMiddle];
-            [self setNameToUser];
-        } else {
-            self.name.text = @"No names found";
-            self.index = 0; // Reset index if no names found to prevent crashes
-        }
-    }];
+    [self.namesTable reloadData];
+    [self setRandomName];
+    [self.activityIndicator stopAnimating];
+    if (self.names.count > 0 && self.index < self.names.count) {
+        [self.namesTable selectRowAtIndexPath:[NSIndexPath indexPathForRow:self.index inSection:0] animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+        [self setNameToUser];
+    } else {
+        self.name.text = @"No names found";
+        self.index = 0; // Reset index if no names found to prevent crashes
+    }
 }
 
 #pragma mark - set name to user

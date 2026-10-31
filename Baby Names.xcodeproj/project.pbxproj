@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B00100011A49000100000002 /* names.json in Resources */ = {isa = PBXBuildFile; fileRef = B00100011A49000100000001 /* names.json */; };
+		B00100021A49000100000003 /* NamesDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = B00100021A49000100000002 /* NamesDatabase.m */; };
+		B00100031A49000100000003 /* SearchFilterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B00100031A49000100000002 /* SearchFilterViewController.m */; };
 		1DDB5E8E508626ACD4EC4AEA /* Pods_Baby_Names.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE613406C5A5D11AD94C996F /* Pods_Baby_Names.framework */; };
 		29FBF5E765A6ECF5659B5159 /* Pods_Baby_NamesTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC25C9F2DA27CB04AB48EB29 /* Pods_Baby_NamesTests.framework */; };
 		56B88FFD1821EC1C75140A7A /* DBUser.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D60ADDDA50AE15EDD1E794 /* DBUser.m */; };
@@ -51,6 +54,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B00100011A49000100000001 /* names.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = names.json; sourceTree = "<group>"; };
+		B00100021A49000100000001 /* NamesDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NamesDatabase.h; sourceTree = "<group>"; };
+		B00100021A49000100000002 /* NamesDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NamesDatabase.m; sourceTree = "<group>"; };
+		B00100031A49000100000001 /* SearchFilterViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SearchFilterViewController.h; sourceTree = "<group>"; };
+		B00100031A49000100000002 /* SearchFilterViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchFilterViewController.m; sourceTree = "<group>"; };
 		0BBCCCB638E3246772155E19 /* Database.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = Database.h; sourceTree = "<group>"; };
 		113B701041DED06664FB8581 /* Pods-Baby NamesTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Baby NamesTests.release.xcconfig"; path = "Target Support Files/Pods-Baby NamesTests/Pods-Baby NamesTests.release.xcconfig"; sourceTree = "<group>"; };
 		25ECB5E329B3B1EC7C0B106F /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -192,6 +200,11 @@
 		7E75F2191A4927F400D94DE1 /* Baby Names */ = {
 			isa = PBXGroup;
 			children = (
+				B00100011A49000100000001 /* names.json */,
+				B00100021A49000100000001 /* NamesDatabase.h */,
+				B00100021A49000100000002 /* NamesDatabase.m */,
+				B00100031A49000100000001 /* SearchFilterViewController.h */,
+				B00100031A49000100000002 /* SearchFilterViewController.m */,
 				7EAEA5DD1A4B8B1A00AC81E5 /* todo.txt */,
 				7E75F21E1A4927F400D94DE1 /* AppDelegate.h */,
 				7E75F21F1A4927F400D94DE1 /* AppDelegate.m */,
@@ -336,6 +349,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00100011A49000100000002 /* names.json in Resources */,
 				7EAEA5DE1A4B8B1A00AC81E5 /* todo.txt in Resources */,
 				7E75F2261A4927F400D94DE1 /* Main.storyboard in Resources */,
 				7E75F22B1A4927F400D94DE1 /* LaunchScreen.xib in Resources */,
@@ -471,6 +485,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00100021A49000100000003 /* NamesDatabase.m in Sources */,
+				B00100031A49000100000003 /* SearchFilterViewController.m in Sources */,
 				7E75F2231A4927F400D94DE1 /* ViewController.m in Sources */,
 				7E75F2201A4927F400D94DE1 /* AppDelegate.m in Sources */,
 				7EAEA5DC1A4B737300AC81E5 /* InfoController.m in Sources */,

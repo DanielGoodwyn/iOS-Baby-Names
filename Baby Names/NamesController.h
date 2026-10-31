@@ -19,9 +19,11 @@
 @property (strong, nonatomic) UIButton *bothButton;
 @property (strong, nonatomic) UIButton *girlButton;
 @property (strong, nonatomic) UIStackView *genderStackView;
+@property (strong, nonatomic) UIButton *searchButton;
 
 @property int index;
 
+- (IBAction)openSearchFilter:(id)sender;
 - (IBAction)filterBoy:(id)sender;
 - (IBAction)filterBoth:(id)sender;
 - (IBAction)filterGirl:(id)sender;

@@ -1,5 +1,6 @@
 
 #import "NamesController.h"
+#import "SearchFilterViewController.h"
 
 @interface NamesController ()
 @property (nonatomic, strong) NSArray<DBObject *> *rawFavorites;
@@ -83,6 +84,16 @@
         shuffleBtn.imageView.contentMode = UIViewContentModeScaleAspectFit;
     }
     
+    if (!self.searchButton) {
+        self.searchButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.searchButton setImage:[UIImage imageNamed:@"tool_search"] forState:UIControlStateNormal];
+        self.searchButton.tintColor = [UIColor labelColor];
+        self.searchButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        [self.searchButton addTarget:self action:@selector(openSearchFilter:) forControlEvents:UIControlEventTouchUpInside];
+        self.searchButton.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:self.searchButton];
+    }
+    
     if (homeBtn && shuffleBtn) {
         [NSLayoutConstraint activateConstraints:@[
             [homeBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
@@ -93,7 +104,12 @@
             [shuffleBtn.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
             [shuffleBtn.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-20],
             [shuffleBtn.widthAnchor constraintEqualToConstant:44],
-            [shuffleBtn.heightAnchor constraintEqualToConstant:44]
+            [shuffleBtn.heightAnchor constraintEqualToConstant:44],
+            
+            [self.searchButton.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:10],
+            [self.searchButton.trailingAnchor constraintEqualToAnchor:shuffleBtn.leadingAnchor constant:-8],
+            [self.searchButton.widthAnchor constraintEqualToConstant:44],
+            [self.searchButton.heightAnchor constraintEqualToConstant:44]
         ]];
     }
     
@@ -541,6 +557,17 @@
     DBUser *currentUser = [DBUser currentUser];
     [currentUser setObject:@"MyNames" forKey:@"lastPage"];
     [currentUser saveInBackground];
+}
+
+#pragma mark - Search & Filter
+
+- (IBAction)openSearchFilter:(id)sender {
+    SearchFilterViewController *sfVC = [[SearchFilterViewController alloc] init];
+    DBUser *currentUser = [DBUser currentUser];
+    NSInteger limit = [[currentUser objectForKey:@"limit"] integerValue];
+    sfVC.currentLimit = limit > 0 ? limit : 25;
+    sfVC.modalPresentationStyle = UIModalPresentationPageSheet;
+    [self presentViewController:sfVC animated:YES completion:nil];
 }
 
 @end
