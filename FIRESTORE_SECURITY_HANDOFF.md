@@ -31,7 +31,9 @@ Some eMudhra intermediate CA certificates were compromised. The Apple (iOS) Fire
 ## Verification checklist
 - [x] `Podfile.lock` shows FirebaseFirestore 12.19.3 (or higher)
 - [x] App builds cleanly
-- [x] Firestore reads and writes work on a real device (verified on iPhone 17 Pro & iPhone 16 Pro)
+- [x] Unit test suite executed and passed on device (6 tests, 0 failures)
+- [x] Firestore reads and writes work on real devices (verified on iPhone 17 Pro & iPhone 16 Pro)
+- [x] Build number bumped to 2 in `Info.plist` and Release archive created (`BabyNames.xcarchive`)
 - [ ] New build submitted and approved on the App Store
 - [ ] Users prompted to update
 
