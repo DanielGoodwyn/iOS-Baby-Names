@@ -29,9 +29,9 @@ Some eMudhra intermediate CA certificates were compromised. The Apple (iOS) Fire
 8. After release, prompt users to update (release notes, and a minimum-version prompt if available).
 
 ## Verification checklist
-- [ ] `Podfile.lock` shows FirebaseFirestore 12.19.3 (or higher)
-- [ ] App builds cleanly
-- [ ] Firestore reads and writes work on a real device
+- [x] `Podfile.lock` shows FirebaseFirestore 12.19.3 (or higher)
+- [x] App builds cleanly
+- [x] Firestore reads and writes work on a real device (verified on iPhone 17 Pro & iPhone 16 Pro)
 - [ ] New build submitted and approved on the App Store
 - [ ] Users prompted to update
 
