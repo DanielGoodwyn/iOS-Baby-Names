@@ -33,7 +33,10 @@ Some eMudhra intermediate CA certificates were compromised. The Apple (iOS) Fire
 - [x] App builds cleanly
 - [x] Unit test suite executed and passed on device (6 tests, 0 failures)
 - [x] Firestore reads and writes work on real devices (verified on iPhone 17 Pro & iPhone 16 Pro)
-- [x] Build number bumped to 2 in `Info.plist` and Release archive created (`BabyNames.xcarchive`)
+- [x] Bundle ID migrated to `com.danielgoodwyn.babynames` and App Store record created (`Baby Names USA`)
+- [x] Release archive built with `UIRequiresFullScreen` and iPad orientations configured (Build 4)
+- [x] Build 1.0 (4) successfully uploaded to Apple App Store Connect
+- [ ] Apple processing complete & Export Compliance answered (No encryption)
 - [ ] New build submitted and approved on the App Store
 - [ ] Users prompted to update
 
