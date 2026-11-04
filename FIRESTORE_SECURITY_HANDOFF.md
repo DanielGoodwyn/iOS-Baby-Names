@@ -36,8 +36,9 @@ Some eMudhra intermediate CA certificates were compromised. The Apple (iOS) Fire
 - [x] Bundle ID migrated to `com.danielgoodwyn.babynames` and App Store record created (`Baby Names USA`)
 - [x] Release archive built with `UIRequiresFullScreen` and iPad orientations configured (Build 4)
 - [x] Build 1.0 (4) successfully uploaded to Apple App Store Connect
-- [ ] Apple processing complete & Export Compliance answered (No encryption)
-- [ ] New build submitted and approved on the App Store
+- [x] Apple processing complete & Export Compliance answered (No encryption)
+- [x] New build submitted to App Store Connect (Status: **Waiting for Review**)
+- [ ] Apple review approval & release to the App Store
 - [ ] Users prompted to update
 
 ## Links
