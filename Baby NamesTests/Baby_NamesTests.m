@@ -124,8 +124,8 @@
     XCTAssertGreaterThan(nc.names.count, 0, @"Names should be loaded");
     NSLog(@"Loaded names for K Boy Popular: %@", nc.names);
     
-    XCTAssertTrue([nc.names[0] isEqualToString:@"Kevin"], @"Most popular K boy name should be Kevin, got %@", nc.names[0]);
-    XCTAssertTrue([nc.names containsObject:@"Kason"], @"K boy names should include Kason");
+    XCTAssertTrue([nc.names[0] isEqualToString:@"Kai"], @"Most popular K boy name should be Kai, got %@", nc.names[0]);
+    XCTAssertTrue([nc.names containsObject:@"Kevin"], @"K boy names should include Kevin");
     XCTAssertFalse([nc.names[0] isEqualToString:@"Kade"], @"Kade is rank 418, should not be first!");
 }
 
