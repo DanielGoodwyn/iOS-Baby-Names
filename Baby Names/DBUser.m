@@ -16,21 +16,6 @@ static DBUser *_currentUser = nil;
 }
 
 + (DBUser *)currentUser {
-#if TARGET_OS_SIMULATOR
-    if (!_currentUser) {
-        _currentUser = [[DBUser alloc] init];
-        _currentUser.objectId = @"sim_test_user_id";
-        _currentUser.email = @"test@babynames.com";
-        _currentUser.username = @"test";
-        [_currentUser setObject:@"test" forKey:@"username"];
-        [_currentUser setObject:@"test@babynames.com" forKey:@"email"];
-        [_currentUser setObject:@25 forKey:@"limit"];
-        [_currentUser setObject:@"ALL" forKey:@"letter"];
-        [_currentUser setObject:@"All" forKey:@"gender"];
-        [_currentUser setObject:@"popular" forKey:@"sort"];
-    }
-    return _currentUser;
-#else
     FIRUser *fbUser = [FIRAuth auth].currentUser;
     if (fbUser && !_currentUser) {
         _currentUser = [[DBUser alloc] init];
@@ -41,7 +26,6 @@ static DBUser *_currentUser = nil;
         _currentUser = nil;
     }
     return _currentUser;
-#endif
 }
 
 + (void)logInWithUsernameInBackground:(NSString *)username password:(NSString *)password block:(void (^)(DBUser *, NSError *))block {
@@ -180,6 +164,55 @@ static DBUser *_currentUser = nil;
     [[FIRAuth auth] signOut:&error];
     [GIDSignIn.sharedInstance signOut];
     _currentUser = nil;
+}
+
++ (void)deleteCurrentUserWithCompletion:(void (^)(BOOL succeeded, NSError *error))completion {
+    FIRUser *fbUser = [FIRAuth auth].currentUser;
+    DBUser *currentUser = [DBUser currentUser];
+    NSString *userId = currentUser.objectId ?: fbUser.uid;
+    
+    void (^finishDeletion)(NSError *) = ^(NSError *authError) {
+        if (!authError) {
+            [self logOut];
+            if (completion) completion(YES, nil);
+        } else {
+            if (completion) completion(NO, authError);
+        }
+    };
+    
+    if (userId.length > 0) {
+        FIRFirestore *db = [FIRFirestore firestore];
+        // 1. Delete user record from Firestore
+        [[[db collectionWithPath:@"users"] documentWithPath:userId] deleteDocumentWithCompletion:nil];
+        
+        // 2. Delete all favorite names saved by this user
+        [[[db collectionWithPath:@"names"] queryWhereField:@"userId" isEqualTo:userId] getDocumentsWithCompletion:^(FIRQuerySnapshot * _Nullable snapshot, NSError * _Nullable error) {
+            if (snapshot && snapshot.documents.count > 0) {
+                FIRWriteBatch *batch = [db batch];
+                for (FIRDocumentSnapshot *doc in snapshot.documents) {
+                    [batch deleteDocument:doc.reference];
+                }
+                [batch commitWithCompletion:^(NSError * _Nullable batchError) {
+                    if (fbUser) {
+                        [fbUser deleteWithCompletion:finishDeletion];
+                    } else {
+                        finishDeletion(nil);
+                    }
+                }];
+            } else {
+                if (fbUser) {
+                    [fbUser deleteWithCompletion:finishDeletion];
+                } else {
+                    finishDeletion(nil);
+                }
+            }
+        }];
+    } else if (fbUser) {
+        [fbUser deleteWithCompletion:finishDeletion];
+    } else {
+        [self logOut];
+        if (completion) completion(YES, nil);
+    }
 }
 
 - (void)signUpInBackgroundWithBlock:(void (^)(BOOL, NSError *))block {

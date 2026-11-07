@@ -265,7 +265,6 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     DBUser *currentUser = [DBUser currentUser];
-    [self login];
     if ([self.genderString isEqual:@"👦"]) {
         self.genderString =@"M";
     } if ([self.genderString isEqual:@"👧"]) {

@@ -218,7 +218,19 @@
 
 - (void)startFavoritesListener {
     DBUser *currentUser = [DBUser currentUser];
-    if (![currentUser objectId]) return;
+    if (![currentUser objectId]) {
+        NSArray *saved = [[NSUserDefaults standardUserDefaults] arrayForKey:@"guest_favorite_names"];
+        NSMutableArray *objects = [NSMutableArray array];
+        for (NSString *name in saved) {
+            DBObject *obj = [DBObject objectWithClassName:@"names"];
+            obj[@"name"] = name;
+            obj[@"gender"] = @"All";
+            [objects addObject:obj];
+        }
+        self.rawFavorites = objects;
+        [self applyFilterAndReload];
+        return;
+    }
     
     if (self.favoritesListener) {
         DBQuery *q = [DBQuery queryWithClassName:@"names"];

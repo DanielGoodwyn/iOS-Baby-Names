@@ -164,25 +164,33 @@
 
 - (void)loadFavorites {
     DBUser *currentUser = [DBUser currentUser];
-    if (!currentUser) return;
-    
-    NSString *userId = [currentUser objectForKey:@"userId"] ?: currentUser.objectId;
-    if (!userId) return;
-    
-    DBQuery *query = [DBQuery queryWithClassName:@"names"];
-    [query whereKey:@"userId" equalTo:userId];
-    [query setLimit:1000];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error && objects) {
-            for (DBObject *obj in objects) {
-                NSString *n = [obj objectForKey:@"name"];
-                if (n) [self.favoriteNames addObject:n];
+    if (currentUser) {
+        NSString *userId = [currentUser objectForKey:@"userId"] ?: currentUser.objectId;
+        if (!userId) return;
+        
+        DBQuery *query = [DBQuery queryWithClassName:@"names"];
+        [query whereKey:@"userId" equalTo:userId];
+        [query setLimit:1000];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error && objects) {
+                for (DBObject *obj in objects) {
+                    NSString *n = [obj objectForKey:@"name"];
+                    if (n) [self.favoriteNames addObject:n];
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.tableView reloadData];
+                });
             }
+        }];
+    } else {
+        NSArray *saved = [[NSUserDefaults standardUserDefaults] arrayForKey:@"guest_favorite_names"];
+        if (saved) {
+            [self.favoriteNames addObjectsFromArray:saved];
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self.tableView reloadData];
             });
         }
-    }];
+    }
 }
 
 - (void)doneTapped {
@@ -295,7 +303,19 @@
     if (!name || !gender) return;
     
     DBUser *currentUser = [DBUser currentUser];
-    if (!currentUser) return;
+    if (!currentUser) {
+        [self.feedbackGenerator prepare];
+        [self.feedbackGenerator impactOccurred];
+        
+        if ([self.favoriteNames containsObject:name]) {
+            [self.favoriteNames removeObject:name];
+        } else {
+            [self.favoriteNames addObject:name];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:[self.favoriteNames allObjects] forKey:@"guest_favorite_names"];
+        [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+        return;
+    }
     
     NSString *userId = [currentUser objectForKey:@"userId"] ?: currentUser.objectId;
     if (!userId) return;

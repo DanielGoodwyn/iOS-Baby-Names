@@ -11,6 +11,7 @@
 + (void)beginWithEmail:(NSString *)email password:(NSString *)password block:(void (^)(DBUser *user, BOOL isNewUser, NSError *error))block;
 + (void)beginWithGoogleFromViewController:(UIViewController *)viewController block:(void (^)(DBUser *user, NSError *error))block;
 + (void)logOut;
++ (void)deleteCurrentUserWithCompletion:(void (^)(BOOL succeeded, NSError *error))completion;
 - (void)signUpInBackgroundWithBlock:(void (^)(BOOL succeeded, NSError *error))block;
 + (instancetype)user;
 + (void)requestPasswordResetForEmailInBackground:(NSString *)email block:(void (^)(BOOL succeeded, NSError *error))block;

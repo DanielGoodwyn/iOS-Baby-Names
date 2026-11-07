@@ -50,21 +50,26 @@
         self.passwordLabel.hidden = YES;
         self.forgotButton.hidden = YES;
         self.beginButton.hidden = YES;
+        self.guestButton.hidden = YES;
         self.googleBeginButton.hidden = YES;
         self.logoutButton.hidden = NO;
         self.logoutButton.alpha = 1.0;
+        self.deleteAccountButton.hidden = NO;
+        self.deleteAccountButton.alpha = 1.0;
         
         self.loginButton.hidden = YES;
         self.signupButton.hidden = YES;
     } else {
-        self.loginLabel.text = @"Type your email and password below.";
+        self.loginLabel.text = @"Sign in to sync your favorite baby names across devices, or continue as a guest.";
         self.loginLabel.textColor = [UIColor labelColor];
         self.emailLabel.hidden = NO;
         self.passwordLabel.hidden = NO;
         self.forgotButton.hidden = NO;
         self.beginButton.hidden = NO;
-        self.googleBeginButton.hidden = NO;
+        self.guestButton.hidden = NO;
+        self.googleBeginButton.hidden = YES;
         self.logoutButton.hidden = YES;
+        self.deleteAccountButton.hidden = YES;
         
         self.loginButton.hidden = YES;
         self.signupButton.hidden = YES;
@@ -177,6 +182,22 @@
         [self registerForTraitChanges:@[[UITraitUserInterfaceStyle self]] withAction:@selector(updateBorderColors)];
     }
     
+    // Close / Back Button
+    self.closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.closeButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.closeButton setTitle:@"✕" forState:UIControlStateNormal];
+    self.closeButton.titleLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBold];
+    [self.closeButton setTitleColor:[UIColor secondaryLabelColor] forState:UIControlStateNormal];
+    [self.closeButton addTarget:self action:@selector(closeAction:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.closeButton];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [self.closeButton.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:12],
+        [self.closeButton.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:20],
+        [self.closeButton.widthAnchor constraintEqualToConstant:44],
+        [self.closeButton.heightAnchor constraintEqualToConstant:44]
+    ]];
+
     // Forgot Password Button
     self.forgotButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.forgotButton.translatesAutoresizingMaskIntoConstraints = NO;
@@ -196,27 +217,36 @@
     [self.beginButton.heightAnchor constraintEqualToConstant:50].active = YES;
     [self.beginButton addTarget:self action:@selector(beginAction:) forControlEvents:UIControlEventTouchUpInside];
     
-    // Begin with Google Button
-    self.googleBeginButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.googleBeginButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.googleBeginButton setTitle:@"Begin with Google" forState:UIControlStateNormal];
-    self.googleBeginButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    self.googleBeginButton.backgroundColor = [UIColor colorWithRed:0.26 green:0.52 blue:0.96 alpha:1.0];
-    [self.googleBeginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.googleBeginButton.layer.cornerRadius = 10;
-    [self.googleBeginButton.heightAnchor constraintEqualToConstant:50].active = YES;
-    [self.googleBeginButton addTarget:self action:@selector(beginWithGoogleAction:) forControlEvents:UIControlEventTouchUpInside];
+    // Continue as Guest Button
+    self.guestButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.guestButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.guestButton setTitle:@"Continue as Guest" forState:UIControlStateNormal];
+    self.guestButton.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightMedium];
+    [self.guestButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    self.guestButton.backgroundColor = [UIColor clearColor];
+    [self.guestButton.heightAnchor constraintEqualToConstant:44].active = YES;
+    [self.guestButton addTarget:self action:@selector(guestAction:) forControlEvents:UIControlEventTouchUpInside];
     
     // Logout Button
     self.logoutButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.logoutButton.translatesAutoresizingMaskIntoConstraints = NO;
     [self.logoutButton setTitle:@"Log Out" forState:UIControlStateNormal];
     self.logoutButton.titleLabel.font = [UIFont boldSystemFontOfSize:17];
-    self.logoutButton.backgroundColor = [UIColor systemRedColor];
+    self.logoutButton.backgroundColor = [UIColor systemBlueColor];
     [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.logoutButton.layer.cornerRadius = 10;
     [self.logoutButton.heightAnchor constraintEqualToConstant:50].active = YES;
     [self.logoutButton addTarget:self action:@selector(logoutAction:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // Delete Account Button (Guideline 5.1.1(v))
+    self.deleteAccountButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.deleteAccountButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.deleteAccountButton setTitle:@"Delete Account" forState:UIControlStateNormal];
+    self.deleteAccountButton.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightMedium];
+    [self.deleteAccountButton setTitleColor:[UIColor systemRedColor] forState:UIControlStateNormal];
+    self.deleteAccountButton.backgroundColor = [UIColor clearColor];
+    [self.deleteAccountButton.heightAnchor constraintEqualToConstant:44].active = YES;
+    [self.deleteAccountButton addTarget:self action:@selector(deleteAccountAction:) forControlEvents:UIControlEventTouchUpInside];
     
     // UIStackView
     UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[
@@ -225,8 +255,9 @@
         self.passwordLabel,
         self.forgotButton,
         self.beginButton,
-        self.googleBeginButton,
-        self.logoutButton
+        self.guestButton,
+        self.logoutButton,
+        self.deleteAccountButton
     ]];
     stack.axis = UILayoutConstraintAxisVertical;
     stack.spacing = 16;
@@ -238,6 +269,26 @@
         [stack.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:32],
         [stack.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-32]
     ]];
+}
+
+- (void)returnToHome {
+    if (self.presentingViewController) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    } else {
+        @try {
+            [self performSegueWithIdentifier:@"home" sender:nil];
+        } @catch (NSException *e) {
+            NSLog(@"Segue home: %@", e);
+        }
+    }
+}
+
+- (void)closeAction:(id)sender {
+    [self returnToHome];
+}
+
+- (void)guestAction:(id)sender {
+    [self returnToHome];
 }
 
 - (void)beginAction:(id)sender {
@@ -254,8 +305,8 @@
     [DBUser beginWithEmail:email password:password block:^(DBUser *user, BOOL isNewUser, NSError *error) {
         if (user) {
             [self getUser];
-            [self performSegueWithIdentifier:@"home" sender:nil];
             [self lastPage];
+            [self returnToHome];
         } else {
             self.loginLabel.text = error.localizedDescription ?: @"Authentication error";
             self.loginLabel.textColor = [UIColor systemRedColor];
@@ -268,25 +319,7 @@
 }
 
 - (void)beginWithGoogle {
-    self.loginLabel.text = @"Signing in with Google...";
-    self.loginLabel.textColor = [UIColor labelColor];
-    
-    @try {
-        [DBUser beginWithGoogleFromViewController:self block:^(DBUser *user, NSError *error) {
-            if (user) {
-                [self getUser];
-                [self performSegueWithIdentifier:@"home" sender:nil];
-                [self lastPage];
-            } else {
-                self.loginLabel.text = error.localizedDescription ?: @"Google Sign-In failed";
-                self.loginLabel.textColor = [UIColor systemRedColor];
-            }
-        }];
-    } @catch (NSException *exception) {
-        NSLog(@"Exception in beginWithGoogle: %@", exception);
-        self.loginLabel.text = exception.reason ?: @"Google Sign-In error";
-        self.loginLabel.textColor = [UIColor systemRedColor];
-    }
+    // Deprecated in favor of direct email/password authentication
 }
 
 - (void)logoutAction:(id)sender {
@@ -294,6 +327,41 @@
     self.emailLabel.text = @"";
     self.passwordLabel.text = @"";
     [self getUser];
+}
+
+- (void)deleteAccountAction:(id)sender {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Delete Account"
+                                                                   message:@"Are you sure you want to permanently delete your account and all associated saved favorite names? This action cannot be undone."
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Delete Account" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        self.loginLabel.text = @"Deleting account...";
+        self.loginLabel.textColor = [UIColor labelColor];
+        self.deleteAccountButton.enabled = NO;
+        self.logoutButton.enabled = NO;
+        
+        [DBUser deleteCurrentUserWithCompletion:^(BOOL succeeded, NSError *error) {
+            self.deleteAccountButton.enabled = YES;
+            self.logoutButton.enabled = YES;
+            if (succeeded) {
+                self.emailLabel.text = @"";
+                self.passwordLabel.text = @"";
+                [self getUser];
+                
+                UIAlertController *doneAlert = [UIAlertController alertControllerWithTitle:@"Account Deleted"
+                                                                                   message:@"Your account and all associated saved names have been permanently deleted."
+                                                                            preferredStyle:UIAlertControllerStyleAlert];
+                [doneAlert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                [self presentViewController:doneAlert animated:YES completion:nil];
+            } else {
+                self.loginLabel.text = error.localizedDescription ?: @"Error deleting account";
+                self.loginLabel.textColor = [UIColor systemRedColor];
+            }
+        }];
+    }]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)forgotPasswordTapped:(id)sender {
@@ -330,21 +398,19 @@
 #pragma mark - edge pan gesture
 
 - (void)leftEdge:(UIScreenEdgePanGestureRecognizer *)edgeRecognizer {
-    if ([DBUser currentUser]) {
-        [self performSegueWithIdentifier:@"home" sender:nil];
-    }
+    [self returnToHome];
 }
 
 - (void)rightEdge:(UIScreenEdgePanGestureRecognizer *)edgeRecognizer {
-    if ([DBUser currentUser]) {
-        [self performSegueWithIdentifier:@"home" sender:nil];
-    }
+    [self returnToHome];
 }
 
 - (void)lastPage {
     DBUser *currentUser = [DBUser currentUser];
-    [currentUser setObject:@"Account" forKey:@"lastPage"];
-    [currentUser saveInBackground];
+    if (currentUser) {
+        [currentUser setObject:@"Account" forKey:@"lastPage"];
+        [currentUser saveInBackground];
+    }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

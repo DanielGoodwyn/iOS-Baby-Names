@@ -13,6 +13,9 @@
 @property (nonatomic, strong) UIButton *beginButton;
 @property (nonatomic, strong) UIButton *googleBeginButton;
 @property (nonatomic, strong) UIButton *forgotButton;
+@property (nonatomic, strong) UIButton *guestButton;
+@property (nonatomic, strong) UIButton *deleteAccountButton;
+@property (nonatomic, strong) UIButton *closeButton;
 
 @property NSString *emailString;
 @property NSString *passwordString;
